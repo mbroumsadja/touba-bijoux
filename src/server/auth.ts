@@ -28,7 +28,7 @@ function secret(): string {
 export const signAdminToken = () => jwt.sign({ role: 'admin' }, secret(), { expiresIn: '12h' });
 
 export function isAdminRequest(req: Request): boolean {
-  const m = /^Bearer (.+)$/.exec(req.headers.get('authorization') || '');
+  const m = req.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i) ?? null;
   if (!m) return false;
   try {
     const payload = jwt.verify(m[1], secret());
