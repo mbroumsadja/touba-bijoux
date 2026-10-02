@@ -48,7 +48,7 @@ export function rateLimited(name: string, key: string, max: number, windowMs: nu
   const store = (buckets._toubaBuckets ??= new Map());
   const k = `${name}:${key}`;
   const now = Date.now();
-  const list = (store.get(k) || []).filter((t) => now - t < windowMs);
+  const list = (store.get(k) || []).filter((t: number) => now - t < windowMs);
   if (count) list.push(now);
   store.set(k, list);
   return count ? list.length > max : list.length >= max;

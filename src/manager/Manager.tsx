@@ -6,7 +6,6 @@ import { Action, computeStats } from '../lib/analytics';
 import { AnalyticsEvent } from '../types';
 import { Overview } from './Overview';
 import { Products } from './Products';
-import { Marketing } from './Marketing';
 import { Shop } from './Shop';
 import { btnPrimary, inputCls } from './ui';
 
@@ -19,7 +18,7 @@ const TABS = [
 /** L'onglet vient de l'adresse (#gerant/produits) : le bouton Retour et les favoris fonctionnent. */
 const tabFromHash = (): Tab => {
   const t = window.location.hash.split('/')[1];
-  return TABS.find((x) => x.id === t)?.id ?? 'apercu';
+  return TABS.find((x) => x.id === t)?.id ?? 'produits';
 };
 
 /** Police des titres, chargée seulement quand le gérant ouvre son espace. */
@@ -124,7 +123,7 @@ export const Manager: React.FC = () => {
     }
     if (a.kind === 'edit') setOpenId(a.productId);
     else setStatusId(a.productId);
-    go(a.kind === 'edit' ? 'produits' : 'marketing');
+    go('produits');
   };
 
   const clearAll = async () => {
