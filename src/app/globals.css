@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ivory: #FAF7F2;
+  --color-sand: #F1EBDF;
+  --color-onyx: #141210;
+  --color-gold: #C9A24B;
+  --color-gold-deep: #86651C;
+  /* or lisible sur fond clair (contraste 5:1) */
+  --color-wa: #25D366;
+  --color-wa-deep: #0E8A42;
+  /* vert WhatsApp avec texte blanc lisible */
+  /* Espace gérant : papier vert-gris, encre bouteille, or, signaux */
+  /* Espace gérant : même palette que la boutique */
+  --color-papier: #FAF7F2;
+  /* fond de page = ivory */
+  --color-feuille: #FFFFFF;
+  /* cartes et panneaux */
+  --color-encre: #141210;
+  /* texte = onyx */
+  --color-or: #C9A24B;
+  /* accent = gold */
+  --color-or-deep: #86651C;
+  /* or lisible sur fond clair = gold-deep */
+  --color-garance: #A9402E;
+  /* erreurs / alertes : à garder */
+  --color-malachite: #1E6B47;
+  /* succès : à garder */
+  --font-display: 'Bricolage Grotesque', 'Jost', system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-ivory text-onyx font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+/* Ornement : petit filet doré sous les titres */
+.gold-rule {
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  background: var(--color-gold);
+}
+
+/* Apparition douce au défilement (légère : opacité + 12px) */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Reflet doré sur le bouton principal */
+.btn-gold {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .4) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shine 5s infinite;
+}
+
+@keyframes shine {
+
+  0%,
+  70% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Bouton WhatsApp flottant : légère pulsation */
+.wa-float {
+  animation: wa-pulse 2.8s infinite;
+}
+
+@keyframes wa-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, .5);
+  }
+
+  70% {
+    box-shadow: 0 0 0 14px rgba(37, 211, 102, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+.fade-in {
+  animation: fade-in .2s ease-out;
+}
+
+.sheet-in {
+  animation: sheet-in .28s cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Espace gérant : anneau de focus sombre (contraste 10:1 sur le papier) */
+.gerant :focus-visible {
+  outline: 3px solid var(--color-encre);
+  outline-offset: 2px;
+}
