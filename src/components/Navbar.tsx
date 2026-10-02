@@ -14,6 +14,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => 
   const links = [
     { id: 'accueil', label: tr('Accueil', 'Home') },
     { id: 'catalogue', label: tr('Catalogue', 'Catalog') },
+    { id: 'arrivages', label: tr('Arrivages', 'New arrivals') },
     { id: 'gros', label: tr('Vente en gros', 'Wholesale') },
     { id: 'boutique', label: tr('Boutique', 'Shop') },
   ];

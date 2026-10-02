@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Validate UI compilation",
+			"type": "shell",
+			"command": "cd /home/mbroumsadja/Téléchargements/touba-bijoux-nextjs/touba-next && npx tsc --noEmit --pretty false",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "none"
+		}
+	]
+}

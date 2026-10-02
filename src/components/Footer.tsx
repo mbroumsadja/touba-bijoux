@@ -17,6 +17,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenAdmin }) => {
         <p className="text-ivory/60 text-sm">{lang === 'fr' ? settings.sloganFr : settings.sloganEn}</p>
         <nav className="flex gap-6 text-sm text-ivory/70">
           <button type="button" onClick={() => onNavigate('catalogue')} className="hover:text-gold cursor-pointer transition-colors">{tr('Catalogue', 'Catalog')}</button>
+          <button type="button" onClick={() => onNavigate('arrivages')} className="hover:text-gold cursor-pointer transition-colors">{tr('Arrivages', 'New arrivals')}</button>
           <button type="button" onClick={() => onNavigate('gros')} className="hover:text-gold cursor-pointer transition-colors">{tr('Vente en gros', 'Wholesale')}</button>
           <button type="button" onClick={() => onNavigate('boutique')} className="hover:text-gold cursor-pointer transition-colors">{tr('Boutique', 'Shop')}</button>
         </nav>

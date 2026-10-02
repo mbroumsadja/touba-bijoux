@@ -15,7 +15,7 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({ onOpen, onSeeAll }) =>
   const ids = items.map((p) => p.id);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+    <section id="arrivages" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <h2 className="font-serif text-3xl sm:text-4xl font-medium">{tr('Nouveautés', 'New arrivals')}</h2>

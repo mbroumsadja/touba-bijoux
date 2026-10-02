@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowRight, ImageUp, Search, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgePercent, Boxes, ImageUp, MessageCircle, Search, Sparkles, Truck } from 'lucide-react';
 import { useStore } from '../lib/store';
+import { buildWholesaleWhatsAppLink } from '../lib/whatsapp';
 import { Product } from '../types';
 
 function loadImageSource(src: string): Promise<HTMLImageElement> {
@@ -58,7 +59,8 @@ function distance(a: number[], b: number[]): number {
 }
 
 export const WholesaleSection: React.FC = () => {
-  const { products, lang, tr } = useStore();
+  const { products, settings, lang, tr } = useStore();
+  const wholesaleLink = buildWholesaleWhatsAppLink({ phone: settings.whatsappNumber, shopName: settings.shopName, lang });
   const [fileName, setFileName] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const [match, setMatch] = useState<Product | null>(null);
@@ -105,11 +107,52 @@ export const WholesaleSection: React.FC = () => {
   };
 
   const productName = match && lang === 'en' && match.nameEn ? match.nameEn : match?.name;
+  const wholesaleInfo = [
+    { icon: BadgePercent, title: tr('Prix de gros dès le catalogue', 'Wholesale prices from the catalog'), text: tr('Chaque pièce affiche son tarif de gros pour faciliter le choix.', 'Each item shows its wholesale price to make selection easier.') },
+    { icon: Boxes, title: settings.wholesaleMinQty > 0 ? tr(`À partir de ${settings.wholesaleMinQty} pièces`, `From ${settings.wholesaleMinQty} pieces`) : tr('Quantité à convenir', 'Quantity to agree'), text: tr('Revendeuses et boutiques peuvent commander leur lot selon leurs besoins.', 'Resellers and shops can order their lot according to their needs.') },
+    { icon: Truck, title: tr('Livraison partout au Cameroun', 'Delivery across Cameroon'), text: tr('La commande est mise en place rapidement, et la livraison est assurée dans tout le pays.', 'Orders are processed quickly and delivery is available across the country.') },
+  ];
 
   return (
     <section id="gros" className="bg-onyx text-ivory mb-3 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="max-w-3xl">
+          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-gold font-medium">
+            {tr('Vente en gros', 'Wholesale sales')}
+          </span>
+          <h2 className="mt-3 font-serif text-3xl sm:text-5xl font-medium leading-tight">
+            {tr('Des prix adaptés aux boutiques et revendeuses.', 'Prices tailored to shops and resellers.')}
+          </h2>
+          <p className="mt-4 text-ivory/75 text-base sm:text-lg">
+            {tr('Pour les commandes de lot, l’équipe vous aide à choisir rapidement les modèles qui correspondent à votre clientèle.', 'For bulk orders, the team helps you quickly choose the models that match your customers.')}
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {wholesaleInfo.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="rounded-2xl border border-ivory/10 bg-ivory/5 p-5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
+                <Icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 font-serif text-xl leading-snug text-ivory">{title}</h3>
+              <p className="mt-2 text-sm text-ivory/70 leading-relaxed">{text}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 flex justify-start">
+          <a
+            href={wholesaleLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-onyx transition-colors hover:bg-ivory"
+          >
+            <MessageCircle className="h-4 w-4 fill-current" />
+            {tr('Passer une commande en gros', 'Place a wholesale order')}
+          </a>
+        </div>
+
+        <div className="mt-12 max-w-3xl">
           <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-gold font-medium">
             {tr('Recherche par image', 'Image search')}
           </span>

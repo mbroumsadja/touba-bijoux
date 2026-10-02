@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { NewArrivals } from './components/NewArrivals';
 import { ProductGrid } from './components/ProductGrid';
+import { ArrivalsCTA } from './components/ArrivalsCTA';
 import { PhotoModal } from './components/PhotoModal';
 import { WholesaleSection } from './components/WholesaleSection';
 import { ShopSection } from './components/ShopSection';
@@ -45,7 +46,7 @@ export default function App() {
 
   // Met en surbrillance la section visible dans le menu
   useEffect(() => {
-    const ids = ['accueil', 'catalogue', 'gros', 'boutique'];
+    const ids = ['accueil', 'catalogue', 'arrivages', 'gros', 'boutique'];
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && setActiveSection(e.target.id)),
       { rootMargin: '-45% 0px -50% 0px' },
@@ -96,7 +97,9 @@ export default function App() {
       <main className="flex-1">
         <Hero onSelectCategory={(c: ProductCategory) => showCategory(c)} onExploreCatalog={() => showCategory('all')} />
         <ProductGrid selectedCategory={category} onSelectCategory={pickCategory} onOpen={open} />
+        <NewArrivals onOpen={open} onSeeAll={() => showCategory('all')} />
         <WholesaleSection />
+        <ArrivalsCTA />
         <ShopSection />
       </main>
       <Footer onNavigate={scrollTo} onOpenAdmin={() => { window.location.hash = 'gerant'; }} />
