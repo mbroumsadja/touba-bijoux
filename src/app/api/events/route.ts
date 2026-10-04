@@ -1,23 +1,23 @@
-import { requireAdmin } from '@/server/auth';
+import { after } from 'next/server';
+import { rateLimited, requireAdmin } from '@/server/auth';
 import { collections } from '@/server/db';
-import { handle, json, readJson } from '@/server/http';
-import { EVENT_TYPES, MAX_EVENTS_SENT } from '@/server/validate';
+import { listEvents, trimEvents } from '@/server/events';
+import { clientIp, handle, json, readJson, respondJson } from '@/server/http';
+import { EVENT_TYPES } from '@/server/validate';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export const GET = handle(async (req) => {
   requireAdmin(req);
-  const { searchParams } = new URL(req.url);
-  const days = Number(searchParams.get('days') ?? '30');
-  const { events } = await collections();
-  const since = Number.isFinite(days) && days > 0 ? Date.now() - days * 86_400_000 : undefined;
-  const query = since ? { t: { $gte: since } } : {};
-  const list = await events.find(query).sort({ t: -1 }).limit(MAX_EVENTS_SENT).toArray();
-  return json({ events: list, truncated: list.length >= MAX_EVENTS_SENT });
+  return respondJson(req, JSON.stringify(await listEvents(req.url)), { 'Cache-Control': 'private, no-store' });
 });
 
 export const POST = handle(async (req) => {
+  // Filet anti-abus généreux (nombreuses clientes derrière une même adresse mobile) ; ignoré sans en-tête proxy.
+  const ip = clientIp(req);
+  if (ip !== 'x' && rateLimited('events', ip, 600, 60_000)) return json({ ok: false }, 429);
+
   const body = await readJson(req);
   const type = typeof body.type === 'string' ? body.type : '';
   if (!EVENT_TYPES.includes(type)) {
@@ -33,14 +33,7 @@ export const POST = handle(async (req) => {
 
   const { events } = await collections();
   await events.insertOne(event as Record<string, unknown>);
-
-  const total = await events.countDocuments();
-  if (total > MAX_EVENTS_SENT) {
-    const old = await events.find({}).sort({ t: 1 }).limit(total - MAX_EVENTS_SENT).toArray();
-    if (old.length) {
-      await events.deleteMany({ _id: { $in: old.map((row) => row._id) } });
-    }
-  }
+  after(trimEvents); // le nettoyage ne retarde plus la réponse
 
   return json({ ok: true });
 });

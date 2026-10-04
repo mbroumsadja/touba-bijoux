@@ -1,3 +1,4 @@
+import { IMAGE_SETTING_KEYS, isAcceptableImage, isDataUrl, settingImageUrl } from './images';
 import { SEED_SETTINGS } from './seed';
 
 export const CATEGORIES = ['montres', 'colliers', 'boucles', 'bracelets', 'bagues'];
@@ -15,7 +16,7 @@ export const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim(
 export const price = (v: unknown) => Math.max(0, Math.min(100_000_000, Math.round(Number(v) || 0)));
 const images = (v: unknown) =>
   (Array.isArray(v) ? v : [])
-    .filter((s): s is string => typeof s === 'string' && s.length > 0 && s.length <= MAX_IMAGE_CHARS)
+    .filter((s): s is string => typeof s === 'string' && s.length > 0 && s.length <= MAX_IMAGE_CHARS && isAcceptableImage(s))
     .slice(0, 3);
 
 /** Ne garde que les champs connus d'un produit (les champs absents ne sont pas touchés). */
@@ -41,14 +42,13 @@ export function validateProduct(p: Body, { partial }: { partial: boolean }): str
   return null;
 }
 
+/** Réglages publics. Les photos en base64 sont remplacées par un lien court mis en cache par le navigateur. */
 export function publicSettings(doc: Body | null | undefined) {
   const out: Body = {};
-  for (const k of SETTINGS_TEXT_KEYS) out[k] = doc?.[k] ?? SEED_SETTINGS[k];
+  for (const k of SETTINGS_TEXT_KEYS) {
+    const value = doc?.[k] ?? SEED_SETTINGS[k];
+    out[k] = IMAGE_SETTING_KEYS.includes(k) && isDataUrl(value) ? settingImageUrl(k, doc?.[`${k}V`]) : value;
+  }
   out.wholesaleMinQty = Number.isFinite(doc?.wholesaleMinQty) ? doc!.wholesaleMinQty : 0;
   return out;
 }
-
-export const withoutCreatedAt = <T extends Body>(p: T) => {
-  const { createdAt: _createdAt, ...rest } = p;
-  return rest;
-};

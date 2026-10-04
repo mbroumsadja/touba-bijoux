@@ -4,7 +4,9 @@ import { CATEGORIES, INITIAL_SETTINGS } from './initialData';
 
 const LANG_KEY = 'touba_lang_v2';
 const TOKEN_KEY = 'touba_admin_token';
-const DATA_CACHE_KEY = 'touba_catalog_cache_v1';
+// v2 : l'ancien cache contenait les photos en base64 (plusieurs Mo) ; il est supprimé au premier chargement.
+const DATA_CACHE_KEY = 'touba_catalog_cache_v2';
+const LEGACY_DATA_CACHE_KEY = 'touba_catalog_cache_v1';
 
 const NETWORK_ERROR = 'Serveur injoignable : vérifiez la connexion et réessayez.';
 
@@ -56,12 +58,21 @@ function readDataCache(): { products: Product[]; settings: StoreSettings } | nul
   }
 }
 
+try {
+  localStorage.removeItem(LEGACY_DATA_CACHE_KEY);
+} catch {
+  /* ignore */
+}
+
+// Le cache est lu et décodé une seule fois (avant : 3 JSON.parse du catalogue complet au démarrage).
+const initialCache = readDataCache();
+
 let state = {
-  products: readDataCache()?.products ?? [],
-  settings: readDataCache()?.settings ?? (INITIAL_SETTINGS as StoreSettings),
+  products: initialCache?.products ?? [],
+  settings: initialCache?.settings ?? (INITIAL_SETTINGS as StoreSettings),
   lang: detectLang(),
   isAdmin: token !== null,
-  ready: Boolean(readDataCache()), // affiche immédiatement le cache si disponible
+  ready: Boolean(initialCache), // affiche immédiatement le cache si disponible
   offline: false, // true si le serveur n'a pas répondu
 };
 
@@ -119,8 +130,7 @@ async function run(fn: () => Promise<void>): Promise<string | null> {
   }
 }
 
-async function load() {
-  const cached = readDataCache();
+async function load(cached: ReturnType<typeof readDataCache> = readDataCache()) {
   if (cached) {
     commit({ products: cached.products, settings: cached.settings, ready: true, offline: false });
   }
@@ -207,7 +217,7 @@ export const hasAdminToken = () => token !== null;
 export const fetchEvents = (days: number) => api<{ events: AnalyticsEvent[]; truncated: boolean }>(`/stats?days=${days}`);
 export const deleteAllEvents = () => api<{ ok: true }>('/events', { method: 'DELETE' });
 
-void load();
+void load(initialCache);
 
 export function useStore() {
   const s = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
