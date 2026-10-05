@@ -82,11 +82,8 @@ export default function App() {
   );
 
   const current = modal ? products.find((p) => p.id === modal.ids[modal.index]) ?? null : null;
-  const featured = products.find((p) => !p.hidden && p.isNew && !p.soldOut) ?? products.find((p) => !p.hidden && !p.soldOut) ?? null;
-
   // La pièce accrochée à l'accueil : la dernière nouveauté, sinon la première pièce disponible
-  const featured =
-    products.find((p) => !p.hidden && p.isNew && !p.soldOut) ?? products.find((p) => !p.hidden && !p.soldOut) ?? null;
+  const featured = products.find((p) => !p.hidden && p.isNew && !p.soldOut) ?? products.find((p) => !p.hidden && !p.soldOut) ?? null;
 
   if (managerRoute) {
     return (
