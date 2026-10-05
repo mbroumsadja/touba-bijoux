@@ -1,53 +1,38 @@
-import type { Metadata, Viewport } from 'next';
-import '@fontsource-variable/instrument-sans';
-import '@fontsource-variable/syne';
-import './globals.css';
+import React from 'react';
+import { CATEGORIES } from '../lib/initialData';
+import { useStore } from '../lib/store';
+import { ProductCategory } from '../types';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: 'TOUBA BIJOUX · Montres & bijoux pour femmes · Détail & gros',
-  description:
-    'TOUBA BIJOUX : montres et bijoux pour femmes, vendus au détail et en gros (prix de gros sur chaque produit). Livraison dans tout le Cameroun. Commandez en un clic sur WhatsApp.',
-  manifest: '/manifest.webmanifest',
-  icons: { icon: '/icons/icon-192.png', apple: '/icons/icon-192.png' },
-  openGraph: {
-    title: 'TOUBA BIJOUX · Montres & bijoux',
-    description: 'Détail et gros, livraison dans tout le Cameroun. Photo, prix, commande sur WhatsApp.',
-    type: 'website',
-    images: ['/images/og.jpg'],
-  },
-  twitter: { card: 'summary_large_image' },
-};
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  themeColor: '#0B3B2E',
-};
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'JewelryStore',
-  name: 'TOUBA BIJOUX',
-  description:
-    'Montres et bijoux pour femmes, vente au détail et en gros, livraison dans tout le Cameroun, commande directe sur WhatsApp.',
-  areaServed: { '@type': 'Country', name: 'Cameroun' },
-  address: { '@type': 'PostalAddress', addressLocality: 'Garoua', addressCountry: 'CM' },
-  currenciesAccepted: 'XAF',
-  paymentAccepted: 'Orange Money, MTN Mobile Money, Paiement à la livraison',
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="fr" suppressHydrationWarning>
-      <head>
-        <link rel="preload" as="image" href="/images/hero.webp" fetchPriority="high" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      </head>
-      <body>{children}</body>
-    </html>
-  );
+interface CategoriesProps {
+  onSelectCategory: (category: ProductCategory) => void;
 }
+
+export const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
+  const { lang, tr } = useStore();
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16">
+      <div className="mb-6">
+        <h2 className="font-serif text-3xl sm:text-4xl font-medium">{tr('Nos univers', 'Shop by category')}</h2>
+        <span className="gold-rule mt-3" />
+      </div>
+
+      <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex sm:grid sm:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-1">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => onSelectCategory(cat.id)}
+            className="reveal group relative shrink-0 w-[44%] sm:w-auto snap-start aspect-[4/5] rounded-2xl overflow-hidden bg-sand cursor-pointer text-left"
+          >
+            <img src={cat.image} alt="" loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-onyx/75 via-transparent to-transparent" />
+            <span className="absolute bottom-3 left-3 right-3 font-serif text-xl text-ivory leading-tight">
+              {lang === 'fr' ? cat.fr : cat.en}
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+};
