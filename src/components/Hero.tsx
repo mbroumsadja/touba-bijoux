@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { track } from '../lib/analytics';
@@ -25,6 +25,21 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
 
   const featuredName = featured ? (lang === 'en' && featured.nameEn ? featured.nameEn : featured.name) : '';
   const featuredWholesale = featured && (featured.wholesalePrice ?? 0) > 0;
+
+  // Carousel state: advance image every 60s when multiple images are present
+  const [imgIndex, setImgIndex] = useState(0);
+
+  useEffect(() => {
+    if (!featured || !featured.images || featured.images.length <= 1) {
+      setImgIndex(0);
+      return;
+    }
+    setImgIndex(0);
+    const interval = setInterval(() => {
+      setImgIndex((i) => (featured.images ? (i + 1) % featured.images.length : 0));
+    }, 60000); // 60 seconds
+    return () => clearInterval(interval);
+  }, [featured]);
 
   return (
     <section id="accueil">
@@ -83,8 +98,17 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
                     <span className="block text-xs text-moss">
                       {featured.isNew ? tr('Nouveau', 'New') : tr('À découvrir', 'Discover')} · {featured.reference}
                     </span>
-                    {featured.images[0] && (
-                      <img src={featured.images[0]} alt="" className="mt-2 w-full h-24 sm:h-auto object-cover rounded-md bg-mist" />
+                    {featured.images && featured.images.length > 0 && (
+                      <div className="relative mt-2 w-full h-24 sm:h-auto overflow-hidden rounded-md bg-mist">
+                        {featured.images.map((src, i) => (
+                          <img
+                            key={i}
+                            src={src}
+                            alt=""
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === imgIndex ? 'opacity-100' : 'opacity-0'}`}
+                          />
+                        ))}
+                      </div>
                     )}
                     <span className="mt-2 block font-heading font-bold text-[15px] sm:text-base leading-snug line-clamp-2">{featuredName}</span>
                     <span className="mt-1.5 block font-bold tabular-nums text-xl sm:text-2xl text-tag leading-none">
