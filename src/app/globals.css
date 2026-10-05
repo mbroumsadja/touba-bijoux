@@ -26,9 +26,9 @@
   /* erreurs / alertes : à garder */
   --color-malachite: #1E6B47;
   /* succès : à garder */
-  --font-display: 'Bricolage Grotesque', 'Jost', system-ui, sans-serif;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Instrument Sans Variable', 'Instrument Sans', 'Segoe UI', sans-serif;
+  --font-serif: 'Syne Variable', 'Syne', 'Segoe UI', sans-serif;
+  --font-sans: 'Instrument Sans Variable', 'Instrument Sans', 'Segoe UI', sans-serif;
 }
 
 @layer base {
