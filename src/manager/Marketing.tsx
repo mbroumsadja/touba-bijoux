@@ -115,14 +115,6 @@ export const Marketing: React.FC = () => {
     setSelected((current) => (current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]));
   };
 
-  const openPublication = () => {
-    if (!selectedProducts.length) return;
-    const html = buildPublicationHtml(selectedProducts, settings);
-    const popup = window.open('', '_blank', 'noopener,noreferrer,width=430,height=900');
-    if (!popup) return;
-    popup.document.write(html);
-    popup.document.close();
-  };
 
   const copyMessage = async () => {
     if (!selectedProducts.length) return;
@@ -194,9 +186,6 @@ export const Marketing: React.FC = () => {
           <p className="text-sm uppercase tracking-[0.2em] text-encre/60">Marketing</p>
           <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre">Créer une publication WhatsApp</h1>
         </div>
-        <button type="button" onClick={openPublication} disabled={!selectedProducts.length} className={btnPrimary}>
-          <Sparkles className="w-4 h-4" /> Prévisualiser
-        </button>
       </div>
 
       <div className="relative">
@@ -239,13 +228,10 @@ export const Marketing: React.FC = () => {
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={copyMessage} className={btnGhost}>
-                <MessageCircle className="w-4 h-4" /> {copied ? 'Copié' : 'Copier le message'}
+                <MessageCircle className="w-6 h-4" /> {copied ? 'Copié' : 'Copier le message'}
               </button>
               <button type="button" onClick={shareToWhatsAppStatus} className={btnPrimary}>
-                <MessageCircle className="w-4 h-4" /> Ajouter au statut WhatsApp
-              </button>
-              <button type="button" onClick={openPublication} className={btnPrimary}>
-                <ExternalLink className="w-4 h-4" /> Ouvrir la page
+                <MessageCircle className="w-6 h-4" /> Ajouter au statut WhatsApp
               </button>
             </div>
           </div>
