@@ -4,14 +4,16 @@ import { deleteAllEvents, fetchEvents, useStore } from '../lib/store';
 import { CATEGORIES } from '../lib/initialData';
 import { Action, computeStats } from '../lib/analytics';
 import { AnalyticsEvent } from '../types';
+import { Marketing } from './Marketing';
 import { Overview } from './Overview';
 import { Products } from './Products';
 import { Shop } from './Shop';
 import { btnPrimary, inputCls } from './ui';
 
-type Tab = 'produits' | 'boutique';
+type Tab = 'produits' | 'marketing' | 'boutique';
 const TABS = [
   { id: 'produits', label: 'Produits', Icon: Gem },
+  { id: 'marketing', label: 'Marketing', Icon: Megaphone },
   { id: 'boutique', label: 'Boutique', Icon: StoreIcon },
 ] as const;
 
@@ -171,10 +173,11 @@ export const Manager: React.FC = () => {
 
             <main className="w-full max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 pt-6 pb-32 lg:pb-16">
               {tab === 'produits' && <Products stats={stats} say={say} openId={openId} onOpened={() => setOpenId(null)} />}
+              {tab === 'marketing' && <Marketing />}
               {tab === 'boutique' && <Shop say={say} />}
             </main>
 
-            <nav aria-label="Navigation" className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-feuille border-t border-encre/20 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
+            <nav aria-label="Navigation" className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-feuille border-t border-encre/20 grid grid-cols-3 pb-[env(safe-area-inset-bottom)]">
               {nav('h-16 flex flex-col items-center justify-center gap-0.5 text-[12px] cursor-pointer text-encre/70', 'text-encre font-semibold shadow-[inset_0_3px_0_var(--color-or)]')}
             </nav>
           </div>
