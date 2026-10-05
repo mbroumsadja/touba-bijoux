@@ -85,7 +85,7 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
             />
 
             {featured && (
-              <div className="absolute z-10 top-4 left-1/2 transform -translate-x-1/2 sm:top-0 sm:right-10 sm:left-auto sm:transform-none lg:right-auto lg:left-10 xl:left-14">
+              <div className="absolute z-10 top-0 left-4 sm:left-10 xl:left-14">
                 <div className="sway">
                   {/* Ficelle et clou : l'étiquette est accrochée au bord de la photo */}
                   <span aria-hidden="true" className="mx-auto block w-px h-6 bg-brass" />
@@ -93,24 +93,29 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
                     type="button"
                     onClick={() => onOpenProduct(featured.id)}
                     className="hang mx-auto block w-[10.5rem] sm:w-[12.5rem] text-left text-velvet cursor-pointer pt-6 px-3.5 pb-4 hover:bg-white drop-shadow-[0_6px_10px_rgba(0,0,0,.35)]"
-                    aria-label={`${featuredName}, ${featured && featured.price && featured.price > 0 ? formatFCFA(featured.price, lang) : tr('Prix sur demande', 'Price on request')}`}
+                    aria-label={`${featuredName}, ${featured.price && featured.price > 0 ? formatFCFA(featured.price, lang) : tr('Prix sur demande', 'Price on request')}`}
                   >
                     <span className="block text-xs text-moss">
                       {featured.isNew ? tr('Nouveau', 'New') : tr('À découvrir', 'Discover')} · {featured.reference}
                     </span>
+
                     {featured.images && featured.images.length > 0 && (
-                      <div className="relative mt-2 w-full h-24 sm:h-auto overflow-hidden rounded-md bg-mist">
+                      <span className="relative mt-2 block w-full aspect-[4/3] sm:aspect-square overflow-hidden rounded-md bg-mist">
                         {featured.images.map((src, i) => (
                           <img
                             key={i}
                             src={src}
                             alt=""
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === imgIndex ? 'opacity-100' : 'opacity-0'}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === imgIndex ? 'opacity-100' : 'opacity-0'
+                              }`}
                           />
                         ))}
-                      </div>
+                      </span>
                     )}
-                    <span className="mt-2 block font-heading font-bold text-[15px] sm:text-base leading-snug line-clamp-2">{featuredName}</span>
+
+                    <span className="mt-2 block font-heading font-bold text-[15px] sm:text-base leading-snug line-clamp-2">
+                      {featuredName}
+                    </span>
                     <span className="mt-1.5 block font-bold tabular-nums text-xl sm:text-2xl text-tag leading-none">
                       {featured.price && featured.price > 0 ? formatFCFA(featured.price, lang) : tr('Prix sur demande', 'Price on request')}
                     </span>
