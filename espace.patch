@@ -1,0 +1,2045 @@
+diff --git a/README.md b/README.md
+index d55507f..6964642 100644
+--- a/README.md
++++ b/README.md
+@@ -39,3 +39,20 @@ Une section « Vente en gros » présente l'offre. La livraison est annoncée da
+ - Produits d'exemple (premier lancement uniquement) : `server/seed.js` — les prix de gros y sont des exemples.
+ - Textes et catégories : `src/lib/initialData.ts`.
+ - Après mise en ligne : mettre l'adresse complète dans `og:image` (`index.html`) pour l'aperçu WhatsApp.
++
++## Espace gérant (`/#gerant`)
++Page réservée au gérant, pensée pour le téléphone (barre d'onglets en bas) et lisible sur ordinateur.
++Ouvrez `votre-site/#gerant`, ou le lien « Espace gérant » en bas du site, puis « Ajouter à l'écran d'accueil ».
++
++- **Aperçu** : la pièce la plus demandée, visites, fiches ouvertes, clics Commander (détail et gros), liste « À faire maintenant »
++  (remettre en vente une pièce épuisée mais demandée, corriger une pièce regardée mais jamais demandée…), classement, activité par jour.
++- **Produits** : recherche, filtres (en vente, épuisés, masqués, catégorie), vues et demandes de chaque produit, prix de détail et de gros.
++- **Marketing** : statut WhatsApp prêt à copier pour le produit le plus demandé, meilleurs jours et heures pour publier,
++  catégories et budgets préférés, répartition détail/gros, export Excel (CSV).
++- **Boutique** : numéro WhatsApp, horaires, adresse, photos, quantité minimale en gros, mot de passe.
++
++### Statistiques
++Le site public envoie des gestes anonymes (visite, fiche ouverte, clic Commander, clic gros, catégorie, contact) à `POST /api/events`,
++stockés dans la collection MongoDB `events` (index sur `t`). Aucune donnée personnelle. Le gérant les lit via `GET /api/stats?days=N`
++(session requise) et peut les effacer avec `DELETE /api/events`. Les gestes faits quand le gérant est connecté ne sont pas comptés.
++Une visite = une session ; une fiche produit = une vue par visite. Limite d'envoi : 120 gestes par minute et par adresse.
+diff --git a/server/app.js b/server/app.js
+index 9ecd40e..0e77544 100644
+--- a/server/app.js
++++ b/server/app.js
+@@ -13,6 +13,8 @@ const SETTINGS_TEXT_KEYS = [
+ const MAX_IMAGE_CHARS = 400_000; // ~300 Ko : les photos sont déjà compressées côté navigateur
+ 
+ const NO_ID = { projection: { _id: 0 } };
++const EVENT_TYPES = ['visit', 'view', 'order', 'wholesale', 'category', 'contact'];
++const MAX_EVENTS_SENT = 20_000;
+ 
+ function hashPassword(password) {
+   const salt = randomBytes(16).toString('hex');
+@@ -79,6 +81,7 @@ export async function seedIfEmpty(db) {
+ export function createApp(db, { distDir } = {}) {
+   const products = db.collection('products');
+   const settings = db.collection('settings');
++  const events = db.collection('events');
+ 
+   const secret = process.env.JWT_SECRET || randomBytes(32).toString('hex');
+   if (!process.env.JWT_SECRET) console.warn('[touba] JWT_SECRET absent : les sessions gérant sont perdues à chaque redémarrage.');
+@@ -108,6 +111,51 @@ export function createApp(db, { distDir } = {}) {
+     return list.length >= 8;
+   };
+ 
++  // Statistiques : les clientes envoient des gestes anonymes, seul le gérant les lit.
++  const eventHits = new Map();
++  const eventsFlooded = (ip) => {
++    const now = Date.now();
++    const list = (eventHits.get(ip) || []).filter((t) => now - t < 60_000);
++    list.push(now);
++    eventHits.set(ip, list);
++    return list.length > 120;
++  };
++
++  app.post('/api/events', async (req, res, next) => {
++    try {
++      if (eventsFlooded(req.ip || 'x')) return res.status(429).end();
++      const b = req.body ?? {};
++      if (!EVENT_TYPES.includes(b.type)) return res.status(400).json({ error: 'Événement invalide.' });
++      const doc = { t: Date.now(), type: b.type };
++      if (typeof b.pid === 'string' && b.pid) doc.pid = b.pid.slice(0, 40);
++      if (CATEGORIES.includes(b.cat)) doc.cat = b.cat;
++      await events.insertOne(doc);
++      res.status(204).end();
++    } catch (e) {
++      next(e);
++    }
++  });
++
++  app.get('/api/stats', requireAdmin, async (req, res, next) => {
++    try {
++      const days = Math.max(0, Math.min(366, parseInt(req.query.days, 10) || 0));
++      const since = days ? Date.now() - days * 86_400_000 : 0;
++      const list = await events.find({ t: { $gte: since } }, NO_ID).sort({ t: -1 }).limit(MAX_EVENTS_SENT + 1).toArray();
++      res.json({ events: list.slice(0, MAX_EVENTS_SENT), truncated: list.length > MAX_EVENTS_SENT });
++    } catch (e) {
++      next(e);
++    }
++  });
++
++  app.delete('/api/events', requireAdmin, async (_req, res, next) => {
++    try {
++      await events.deleteMany({});
++      res.json({ ok: true });
++    } catch (e) {
++      next(e);
++    }
++  });
++
+   app.get('/api/health', (_req, res) => res.json({ ok: true }));
+ 
+   app.get('/api/data', async (req, res, next) => {
+diff --git a/server/index.js b/server/index.js
+index 8acc03d..b39fefa 100644
+--- a/server/index.js
++++ b/server/index.js
+@@ -14,6 +14,7 @@ await client.connect();
+ const db = client.db(process.env.MONGODB_DB || 'touba-bijoux');
+ 
+ await db.collection('products').createIndex({ id: 1 }, { unique: true });
++await db.collection('events').createIndex({ t: -1 });
+ if (await seedIfEmpty(db)) console.log('[touba] Base initialisée avec les produits d’exemple.');
+ 
+ const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
+diff --git a/src/App.tsx b/src/App.tsx
+index 09c8fc8..36839de 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,4 +1,4 @@
+-import React, { useCallback, useEffect, useState } from 'react';
++import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+ import { Navbar } from './components/Navbar';
+ import { Hero } from './components/Hero';
+ import { NewArrivals } from './components/NewArrivals';
+@@ -8,17 +8,30 @@ import { WholesaleSection } from './components/WholesaleSection';
+ import { ShopSection } from './components/ShopSection';
+ import { Footer } from './components/Footer';
+ import { FloatingWhatsApp } from './components/FloatingWhatsApp';
+-import { AdminModal } from './components/AdminModal';
+ import { ProductCategory } from './types';
+ import { useStore } from './lib/store';
+ import { useReveal } from './lib/useReveal';
++import { track, trackVisitOnce } from './lib/analytics';
++
++// L'espace gérant n'est téléchargé que par le gérant
++const Manager = lazy(() => import('./manager/Manager').then((m) => ({ default: m.Manager })));
+ 
+ export default function App() {
+   const { products, lang, settings } = useStore();
+   const [activeSection, setActiveSection] = useState('accueil');
+   const [category, setCategory] = useState('all');
+   const [modal, setModal] = useState<{ ids: string[]; index: number } | null>(null);
+-  const [adminOpen, setAdminOpen] = useState(false);
++  const [hash, setHash] = useState(() => window.location.hash);
++  const managerRoute = hash === '#gerant' || hash.startsWith('#gerant/');
++
++  useEffect(() => {
++    const onHash = () => setHash(window.location.hash);
++    window.addEventListener('hashchange', onHash);
++    return () => window.removeEventListener('hashchange', onHash);
++  }, []);
++  useEffect(() => {
++    if (!managerRoute) trackVisitOnce();
++  }, [managerRoute]);
+ 
+   useReveal([products, category]);
+   useEffect(() => {
+@@ -47,8 +60,13 @@ export default function App() {
+     else document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+   };
+ 
+-  const showCategory = (cat: string) => {
++  const pickCategory = (cat: string) => {
++    if (cat !== 'all') track('category', { cat });
+     setCategory(cat);
++  };
++
++  const showCategory = (cat: string) => {
++    pickCategory(cat);
+     requestAnimationFrame(() => scrollTo('catalogue'));
+   };
+ 
+@@ -62,20 +80,27 @@ export default function App() {
+ 
+   const current = modal ? products.find((p) => p.id === modal.ids[modal.index]) ?? null : null;
+ 
++  if (managerRoute) {
++    return (
++      <Suspense fallback={<div className="fixed inset-0 bg-papier" />}>
++        <Manager />
++      </Suspense>
++    );
++  }
++
+   return (
+     <div className="min-h-screen flex flex-col">
+       <Navbar onNavigate={scrollTo} activeSection={activeSection} />
+       <main className="flex-1">
+         <Hero onSelectCategory={(c: ProductCategory) => showCategory(c)} onExploreCatalog={() => showCategory('all')} />
+         <NewArrivals onOpen={open} onSeeAll={() => showCategory('all')} />
+-        <ProductGrid selectedCategory={category} onSelectCategory={setCategory} onOpen={open} />
++        <ProductGrid selectedCategory={category} onSelectCategory={pickCategory} onOpen={open} />
+         <WholesaleSection />
+         <ShopSection />
+       </main>
+-      <Footer onNavigate={scrollTo} onOpenAdmin={() => setAdminOpen(true)} />
++      <Footer onNavigate={scrollTo} onOpenAdmin={() => { window.location.hash = 'gerant'; }} />
+       <FloatingWhatsApp />
+       <PhotoModal product={current} hasMultiple={(modal?.ids.length ?? 0) > 1} onStep={step} onClose={close} />
+-      <AdminModal isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
+     </div>
+   );
+ }
+diff --git a/src/components/AdminModal.tsx b/src/components/AdminModal.tsx
+deleted file mode 100644
+index 8d81ec5..0000000
+--- a/src/components/AdminModal.tsx
++++ /dev/null
+@@ -1,397 +0,0 @@
+-import React, { useRef, useState } from 'react';
+-import { X, Lock, Plus, Trash2, Pencil, Check, Package, Settings as SettingsIcon, ImagePlus, Loader2 } from 'lucide-react';
+-import { useStore, nextReference, getSettings } from '../lib/store';
+-import { Product, ProductCategory } from '../types';
+-import { CATEGORIES } from '../lib/initialData';
+-import { formatFCFA } from '../lib/whatsapp';
+-import { compressImage } from '../lib/image';
+-
+-const field = 'w-full h-12 px-4 text-base bg-white border border-onyx/20 rounded-xl outline-none focus:border-gold focus:ring-2 focus:ring-gold/25';
+-const labelCls = 'block text-sm font-medium text-onyx mb-1.5';
+-const MAX_PHOTOS = 3;
+-
+-/** Petit interrupteur accessible */
+-const Switch: React.FC<{ on: boolean; onChange: () => void; label: string }> = ({ on, onChange, label }) => (
+-  <button
+-    type="button"
+-    role="switch"
+-    aria-checked={on}
+-    onClick={onChange}
+-    className={`h-9 pl-2 pr-3 rounded-full text-xs font-medium inline-flex items-center gap-2 cursor-pointer border transition-colors ${
+-      on ? 'bg-onyx text-ivory border-onyx' : 'bg-white text-onyx/70 border-onyx/20'
+-    }`}
+-  >
+-    <span className={`w-7 h-4 rounded-full relative transition-colors ${on ? 'bg-gold' : 'bg-onyx/20'}`}>
+-      <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${on ? 'left-3.5' : 'left-0.5'}`} />
+-    </span>
+-    {label}
+-  </button>
+-);
+-
+-/** Choix de photo(s) depuis la galerie, compressées automatiquement */
+-const PhotoPicker: React.FC<{
+-  photos: string[];
+-  max: number;
+-  onChange: (p: string[]) => void;
+-  onError: (m: string) => void;
+-}> = ({ photos, max, onChange, onError }) => {
+-  const input = useRef<HTMLInputElement>(null);
+-  const [busy, setBusy] = useState(false);
+-
+-  const handleFiles = async (files: FileList | null) => {
+-    if (!files?.length) return;
+-    setBusy(true);
+-    try {
+-      const added: string[] = [];
+-      for (const f of Array.from(files).slice(0, max - photos.length)) added.push(await compressImage(f));
+-      onChange([...photos, ...added]);
+-    } catch {
+-      onError("Impossible de lire cette photo. Essayez une autre image.");
+-    } finally {
+-      setBusy(false);
+-      if (input.current) input.current.value = '';
+-    }
+-  };
+-
+-  return (
+-    <div className="flex flex-wrap gap-3">
+-      {photos.map((src, i) => (
+-        <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden bg-sand border border-onyx/10">
+-          <img src={src} alt="" className="w-full h-full object-cover" />
+-          {i === 0 && max > 1 && <span className="absolute bottom-0 inset-x-0 bg-onyx/75 text-ivory text-[10px] text-center py-0.5">Principale</span>}
+-          <button type="button" onClick={() => onChange(photos.filter((_, j) => j !== i))} className="absolute top-1 right-1 w-7 h-7 rounded-full bg-onyx/80 text-white flex items-center justify-center cursor-pointer" aria-label="Retirer la photo">
+-            <X className="w-4 h-4" />
+-          </button>
+-        </div>
+-      ))}
+-      {photos.length < max && (
+-        <button
+-          type="button"
+-          onClick={() => input.current?.click()}
+-          disabled={busy}
+-          className="w-24 h-24 rounded-xl border-2 border-dashed border-onyx/25 hover:border-gold text-onyx/60 flex flex-col items-center justify-center gap-1 text-xs cursor-pointer transition-colors"
+-        >
+-          {busy ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImagePlus className="w-6 h-6" />}
+-          {busy ? 'Envoi…' : 'Ajouter'}
+-        </button>
+-      )}
+-      <input ref={input} type="file" accept="image/*" multiple={max > 1} hidden onChange={(e) => handleFiles(e.target.files)} />
+-    </div>
+-  );
+-};
+-
+-interface AdminModalProps {
+-  isOpen: boolean;
+-  onClose: () => void;
+-}
+-
+-export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
+-  const s = useStore();
+-  const { products, settings, isAdmin } = s;
+-
+-  const [password, setPassword] = useState('');
+-  const [authError, setAuthError] = useState('');
+-  const [tab, setTab] = useState<'products' | 'settings'>('products');
+-  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+-
+-  // Formulaire produit
+-  const [editing, setEditing] = useState<'new' | string | null>(null);
+-  const [name, setName] = useState('');
+-  const [nameEn, setNameEn] = useState('');
+-  const [price, setPrice] = useState('');
+-  const [wholesalePrice, setWholesalePrice] = useState('');
+-  const [saving, setSaving] = useState(false);
+-  const [category, setCategory] = useState<ProductCategory>('colliers');
+-  const [photos, setPhotos] = useState<string[]>([]);
+-  const [isNew, setIsNew] = useState(true);
+-
+-  // Formulaire boutique
+-  const [form, setForm] = useState(() => ({ ...settings, newPassword: '' }));
+-  const setF = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+-
+-  if (!isOpen) return null;
+-
+-  const say = (msg: string, ok = true) => {
+-    setToast({ msg, ok });
+-    setTimeout(() => setToast(null), 3500);
+-  };
+-
+-  const openForm = (p?: Product) => {
+-    setEditing(p ? p.id : 'new');
+-    setName(p?.name ?? '');
+-    setNameEn(p?.nameEn ?? '');
+-    setPrice(p ? String(p.price || '') : '');
+-    setWholesalePrice(p ? String(p.wholesalePrice || '') : '');
+-    setCategory(p?.category ?? 'colliers');
+-    setPhotos(p?.images ?? []);
+-    setIsNew(p ? Boolean(p.isNew) : true);
+-  };
+-
+-  const saveProduct = async (e: React.FormEvent) => {
+-    e.preventDefault();
+-    if (saving) return;
+-    if (photos.length === 0) return say('Ajoutez au moins une photo.', false);
+-    const data = {
+-      name: name.trim(),
+-      nameEn: nameEn.trim() || undefined,
+-      price: Math.max(0, parseInt(price.replace(/\D/g, ''), 10) || 0),
+-      wholesalePrice: Math.max(0, parseInt(wholesalePrice.replace(/\D/g, ''), 10) || 0),
+-      category,
+-      images: photos,
+-      isNew,
+-    };
+-    if (data.wholesalePrice > 0 && data.price > 0 && data.wholesalePrice >= data.price) {
+-      return say('Le prix de gros doit être inférieur au prix de détail.', false);
+-    }
+-    setSaving(true);
+-    const err =
+-      editing === 'new'
+-        ? await s.addProduct({ ...data, reference: nextReference(category, products) })
+-        : await s.updateProduct(editing!, data);
+-    setSaving(false);
+-    if (err) return say(err, false);
+-    say(editing === 'new' ? 'Produit ajouté !' : 'Produit modifié !');
+-    setEditing(null);
+-  };
+-
+-  const saveSettings = async (e: React.FormEvent) => {
+-    e.preventDefault();
+-    if (saving) return;
+-    const digits = form.whatsappNumber.replace(/\D/g, '');
+-    if (digits.length < 9) return say('Numéro WhatsApp trop court (ex. 237690000000).', false);
+-    const { newPassword, ...rest } = form;
+-    if (newPassword && newPassword.trim().length < 6) return say('Mot de passe : 6 caractères minimum.', false);
+-    setSaving(true);
+-    const err = await s.updateSettings({
+-      ...rest,
+-      whatsappNumber: digits,
+-      wholesaleMinQty: Math.max(0, parseInt(String(rest.wholesaleMinQty), 10) || 0),
+-      ...(newPassword.trim() ? { newPassword: newPassword.trim() } : {}),
+-    });
+-    setSaving(false);
+-    if (err) return say(err, false);
+-    setForm((f) => ({ ...f, newPassword: '' }));
+-    say('Réglages enregistrés !');
+-  };
+-
+-  const toggle = async (id: string, key: 'soldOut' | 'hidden' | 'isNew', current?: boolean) => {
+-    const err = await s.updateProduct(id, { [key]: !current });
+-    if (err) say(err, false);
+-  };
+-
+-  return (
+-    <div className="fixed inset-0 z-50 bg-onyx/80 backdrop-blur-sm flex items-end sm:items-center justify-center fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-label="Espace gérant">
+-      <div className="sheet-in bg-ivory w-full sm:max-w-2xl h-[94svh] sm:h-[88vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+-        <div className="px-5 h-16 shrink-0 bg-onyx text-ivory flex items-center justify-between">
+-          <span className="font-serif text-xl">Espace gérant</span>
+-          <div className="flex items-center gap-1">
+-            {isAdmin && (
+-              <button type="button" onClick={s.logoutAdmin} className="h-10 px-3 text-sm text-ivory/70 hover:text-ivory cursor-pointer">
+-                Déconnexion
+-              </button>
+-            )}
+-            <button type="button" onClick={onClose} className="w-11 h-11 rounded-full hover:bg-ivory/10 flex items-center justify-center cursor-pointer" aria-label="Fermer">
+-              <X className="w-5 h-5" />
+-            </button>
+-          </div>
+-        </div>
+-
+-        {toast && (
+-          <div role="status" className={`shrink-0 px-5 py-3 text-sm flex items-center gap-2 ${toast.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}`}>
+-            {toast.ok && <Check className="w-4 h-4" />} {toast.msg}
+-          </div>
+-        )}
+-
+-        {!isAdmin ? (
+-          <form
+-            className="flex-1 overflow-y-auto p-6 sm:p-10 flex flex-col items-center justify-center text-center gap-4 max-w-sm mx-auto w-full"
+-            onSubmit={async (e) => {
+-              e.preventDefault();
+-              const err = await s.loginAdmin(password);
+-              if (err) return setAuthError(err);
+-              setAuthError('');
+-              setPassword('');
+-              setForm({ ...getSettings(), newPassword: '' });
+-            }}
+-          >
+-            <span className="w-14 h-14 rounded-full bg-sand text-gold-deep flex items-center justify-center">
+-              <Lock className="w-6 h-6" />
+-            </span>
+-            <h3 className="font-serif text-2xl">Accès gérant</h3>
+-            <p className="text-sm text-onyx/60">Ajoutez vos produits, changez les prix et le numéro WhatsApp depuis votre téléphone.</p>
+-            <input type="password" autoFocus autoComplete="current-password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
+-            {authError && <p className="text-sm text-rose-700">{authError}</p>}
+-            <button type="submit" className="w-full h-12 rounded-full bg-onyx hover:bg-onyx/85 text-ivory font-medium cursor-pointer">
+-              Se connecter
+-            </button>
+-          </form>
+-        ) : (
+-          <>
+-            <div className="shrink-0 p-2 flex gap-2 border-b border-onyx/10 bg-sand">
+-              {([
+-                ['products', Package, `Produits (${products.length})`],
+-                ['settings', SettingsIcon, 'Boutique & WhatsApp'],
+-              ] as const).map(([id, Icon, label]) => (
+-                <button
+-                  key={id}
+-                  type="button"
+-                  onClick={() => {
+-                    setTab(id);
+-                    setEditing(null);
+-                  }}
+-                  className={`flex-1 h-11 rounded-xl text-sm font-medium inline-flex items-center justify-center gap-2 cursor-pointer transition-colors ${tab === id ? 'bg-white shadow-sm' : 'text-onyx/60'}`}
+-                >
+-                  <Icon className="w-4 h-4" /> {label}
+-                </button>
+-              ))}
+-            </div>
+-
+-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+-              {tab === 'products' && editing === null && (
+-                <>
+-                  <button type="button" onClick={() => openForm()} className="w-full h-14 rounded-2xl bg-onyx hover:bg-onyx/85 text-ivory font-medium inline-flex items-center justify-center gap-2 cursor-pointer">
+-                    <Plus className="w-5 h-5" /> Ajouter un produit
+-                  </button>
+-                  <ul className="mt-4 space-y-3">
+-                    {products.map((p) => (
+-                      <li key={p.id} className={`bg-white rounded-2xl border border-onyx/10 p-3 ${p.hidden ? 'opacity-60' : ''}`}>
+-                        <div className="flex items-center gap-3">
+-                          <img src={p.images[0]} alt="" className="w-16 h-16 rounded-xl object-cover bg-sand shrink-0" />
+-                          <div className="min-w-0 flex-1">
+-                            <div className="font-medium truncate">{p.name}</div>
+-                            <div className="text-sm text-onyx/60">
+-                              {p.reference} · {formatFCFA(p.price)}
+-                              {(p.wholesalePrice ?? 0) > 0 && <> · Gros {formatFCFA(p.wholesalePrice!)}</>}
+-                            </div>
+-                          </div>
+-                          <button type="button" onClick={() => openForm(p)} className="w-11 h-11 rounded-full hover:bg-sand flex items-center justify-center cursor-pointer" aria-label="Modifier">
+-                            <Pencil className="w-4 h-4" />
+-                          </button>
+-                          <button
+-                            type="button"
+-                            onClick={async () => {
+-                              if (!confirm(`Supprimer « ${p.name} » ?`)) return;
+-                              const err = await s.deleteProduct(p.id);
+-                              if (err) say(err, false);
+-                            }}
+-                            className="w-11 h-11 rounded-full hover:bg-rose-50 text-rose-700 flex items-center justify-center cursor-pointer"
+-                            aria-label="Supprimer"
+-                          >
+-                            <Trash2 className="w-4 h-4" />
+-                          </button>
+-                        </div>
+-                        <div className="mt-3 flex flex-wrap gap-2">
+-                          <Switch on={Boolean(p.soldOut)} onChange={() => toggle(p.id, 'soldOut', p.soldOut)} label="Épuisé" />
+-                          <Switch on={Boolean(p.isNew)} onChange={() => toggle(p.id, 'isNew', p.isNew)} label="Nouveau" />
+-                          <Switch on={Boolean(p.hidden)} onChange={() => toggle(p.id, 'hidden', p.hidden)} label={p.hidden ? 'Masqué' : 'Masquer'} />
+-                        </div>
+-                      </li>
+-                    ))}
+-                  </ul>
+-                </>
+-              )}
+-
+-              {tab === 'products' && editing !== null && (
+-                <form onSubmit={saveProduct} className="space-y-5">
+-                  <h4 className="font-serif text-2xl">{editing === 'new' ? 'Nouveau produit' : 'Modifier le produit'}</h4>
+-                  <div>
+-                    <span className={labelCls}>Photos (1 à {MAX_PHOTOS})</span>
+-                    <PhotoPicker photos={photos} max={MAX_PHOTOS} onChange={setPhotos} onError={(m) => say(m, false)} />
+-                    <p className="mt-2 text-xs text-onyx/50">Les photos sont réduites automatiquement pour charger vite.</p>
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="p-name">Nom court</label>
+-                    <input id="p-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Montre Élégance" className={field} />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="p-name-en">Nom en anglais <span className="text-onyx/40 font-normal">(facultatif)</span></label>
+-                    <input id="p-name-en" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Ex. Elegance Watch" className={field} />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="p-price">Prix en FCFA <span className="text-onyx/40 font-normal">(vide = prix sur demande)</span></label>
+-                    <input id="p-price" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value.replace(/\D/g, ''))} placeholder="45000" className={field} />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="p-wholesale">Prix de gros en FCFA <span className="text-onyx/40 font-normal">(vide = pas de prix de gros affiché)</span></label>
+-                    <input id="p-wholesale" inputMode="numeric" value={wholesalePrice} onChange={(e) => setWholesalePrice(e.target.value.replace(/\D/g, ''))} placeholder="38000" className={field} />
+-                  </div>
+-                  <div>
+-                    <span className={labelCls}>Catégorie</span>
+-                    <div className="flex flex-wrap gap-2">
+-                      {CATEGORIES.map((c) => (
+-                        <button key={c.id} type="button" onClick={() => setCategory(c.id)} aria-pressed={category === c.id} className={`h-11 px-4 rounded-full text-sm cursor-pointer border transition-colors ${category === c.id ? 'bg-onyx text-ivory border-onyx' : 'bg-white border-onyx/20'}`}>
+-                          {c.fr}
+-                        </button>
+-                      ))}
+-                    </div>
+-                  </div>
+-                  <Switch on={isNew} onChange={() => setIsNew((v) => !v)} label="Afficher le badge « Nouveau »" />
+-                  <div className="flex gap-3 pt-2">
+-                    <button type="button" onClick={() => setEditing(null)} className="h-12 px-6 rounded-full border border-onyx/25 cursor-pointer">Annuler</button>
+-                    <button type="submit" disabled={saving} className="flex-1 h-12 rounded-full bg-onyx hover:bg-onyx/85 disabled:opacity-60 text-ivory font-medium cursor-pointer">{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+-                  </div>
+-                </form>
+-              )}
+-
+-              {tab === 'settings' && (
+-                <form onSubmit={saveSettings} className="space-y-5">
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-wa">Numéro WhatsApp (avec 237, sans +)</label>
+-                    <input id="s-wa" required inputMode="numeric" value={form.whatsappNumber} onChange={setF('whatsappNumber')} className={field} placeholder="237690000000" />
+-                    <p className="mt-1.5 text-xs text-onyx/50">Toutes les commandes arrivent sur ce numéro.</p>
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-minqty">Quantité minimale en gros <span className="text-onyx/40 font-normal">(0 = non affichée)</span></label>
+-                    <input id="s-minqty" inputMode="numeric" value={form.wholesaleMinQty || ''} onChange={(e) => setForm((f) => ({ ...f, wholesaleMinQty: parseInt(e.target.value.replace(/\D/g, ''), 10) || 0 }))} className={field} placeholder="Ex. 6" />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-phone">Téléphone affiché</label>
+-                    <input id="s-phone" value={form.displayPhone} onChange={setF('displayPhone')} className={field} placeholder="+237 690 00 00 00" />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-hours">Horaires</label>
+-                    <input id="s-hours" value={form.openingHoursFr} onChange={setF('openingHoursFr')} className={field} />
+-                    <input aria-label="Horaires en anglais" value={form.openingHoursEn} onChange={setF('openingHoursEn')} className={`${field} mt-2`} placeholder="Horaires en anglais (facultatif)" />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-addr">Adresse</label>
+-                    <textarea id="s-addr" rows={2} value={form.addressFr} onChange={setF('addressFr')} className={`${field} h-auto py-3`} />
+-                    <textarea aria-label="Adresse en anglais" rows={2} value={form.addressEn} onChange={setF('addressEn')} className={`${field} h-auto py-3 mt-2`} placeholder="Adresse en anglais (facultatif)" />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-map">Lien Google Maps</label>
+-                    <input id="s-map" type="url" value={form.googleMapsUrl} onChange={setF('googleMapsUrl')} className={field} />
+-                  </div>
+-                  <div>
+-                    <span className={labelCls}>Photo d'accueil</span>
+-                    <PhotoPicker photos={form.bannerImage ? [form.bannerImage] : []} max={1} onChange={(p) => setForm((f) => ({ ...f, bannerImage: p[0] ?? '' }))} onError={(m) => say(m, false)} />
+-                  </div>
+-                  <div>
+-                    <span className={labelCls}>Photo de la boutique</span>
+-                    <PhotoPicker photos={form.shopPhoto ? [form.shopPhoto] : []} max={1} onChange={(p) => setForm((f) => ({ ...f, shopPhoto: p[0] ?? '' }))} onError={(m) => say(m, false)} />
+-                  </div>
+-                  <div>
+-                    <label className={labelCls} htmlFor="s-pass">Nouveau mot de passe <span className="text-onyx/40 font-normal">(laisser vide pour garder l'actuel)</span></label>
+-                    <input id="s-pass" type="password" autoComplete="new-password" value={form.newPassword} onChange={setF('newPassword')} className={field} />
+-                  </div>
+-                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-onyx/10">
+-                    <button type="button" onClick={async () => {
+-                      if (!confirm('Remettre les produits et réglages d’exemple ? Vos produits seront perdus.')) return;
+-                      const err = await s.resetToDefault();
+-                      if (err) return say(err, false);
+-                      setForm({ ...getSettings(), newPassword: '' });
+-                      say('Réinitialisé.');
+-                    }} className="text-sm text-rose-700 hover:underline cursor-pointer">
+-                      Réinitialiser
+-                    </button>
+-                    <button type="submit" disabled={saving} className="h-12 px-8 rounded-full bg-onyx hover:bg-onyx/85 disabled:opacity-60 text-ivory font-medium cursor-pointer">{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+-                  </div>
+-                </form>
+-              )}
+-            </div>
+-          </>
+-        )}
+-      </div>
+-    </div>
+-  );
+-};
+diff --git a/src/components/FloatingWhatsApp.tsx b/src/components/FloatingWhatsApp.tsx
+index fcce2f9..a4c423f 100644
+--- a/src/components/FloatingWhatsApp.tsx
++++ b/src/components/FloatingWhatsApp.tsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+ import { MessageCircle } from 'lucide-react';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ import { buildGeneralWhatsAppLink } from '../lib/whatsapp';
+ 
+ export const FloatingWhatsApp: React.FC = () => {
+@@ -10,6 +11,7 @@ export const FloatingWhatsApp: React.FC = () => {
+   return (
+     <a
+       href={link}
++      onClick={() => track('contact')}
+       target="_blank"
+       rel="noopener noreferrer"
+       className="wa-float fixed z-40 right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] w-14 h-14 rounded-full bg-wa text-white flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform"
+diff --git a/src/components/Hero.tsx b/src/components/Hero.tsx
+index 37bdd49..2e53d36 100644
+--- a/src/components/Hero.tsx
++++ b/src/components/Hero.tsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+ import { MessageCircle, Wallet, Truck, Boxes } from 'lucide-react';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ import { buildGeneralWhatsAppLink } from '../lib/whatsapp';
+ import { CATEGORIES, IMG } from '../lib/initialData';
+ import { ProductCategory } from '../types';
+@@ -51,6 +52,7 @@ export const Hero: React.FC<HeroProps> = ({ onSelectCategory, onExploreCatalog }
+               </button>
+               <a
+                 href={whatsapp}
++                onClick={() => track('contact')}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="h-12 px-6 rounded-full border border-ivory/40 hover:bg-ivory/10 text-ivory text-sm font-medium inline-flex items-center gap-2 transition-colors"
+diff --git a/src/components/PhotoModal.tsx b/src/components/PhotoModal.tsx
+index 9f86972..86fc51d 100644
+--- a/src/components/PhotoModal.tsx
++++ b/src/components/PhotoModal.tsx
+@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+ import { Product } from '../types';
+ import { formatFCFA, buildWhatsAppProductLink } from '../lib/whatsapp';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ 
+ interface PhotoModalProps {
+   product: Product | null;
+@@ -18,6 +19,11 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+ 
+   useEffect(() => setPhoto(0), [product?.id]);
+ 
++  // Une vue = la cliente ouvre la fiche du produit
++  useEffect(() => {
++    if (product) track('view', { pid: product.id, cat: product.category });
++  }, [product?.id]);
++
+   // Échap / flèches, et blocage du défilement derrière la fenêtre
+   useEffect(() => {
+     if (!product) return;
+@@ -149,6 +155,7 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+           ) : (
+             <a
+               href={link}
++              onClick={() => track('order', { pid: product.id, cat: product.category })}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="btn-gold mt-5 h-14 rounded-full bg-wa-deep hover:bg-wa text-white font-semibold inline-flex w-full items-center justify-center gap-2.5 transition-colors"
+@@ -160,6 +167,7 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+           {hasWholesale && !soldOut && (
+             <a
+               href={wholesaleLink}
++              onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="mt-3 h-12 rounded-full border border-gold/60 hover:bg-gold hover:text-onyx text-gold font-medium inline-flex w-full items-center justify-center gap-2 transition-colors"
+diff --git a/src/components/ProductCard.tsx b/src/components/ProductCard.tsx
+index 721983c..6171a43 100644
+--- a/src/components/ProductCard.tsx
++++ b/src/components/ProductCard.tsx
+@@ -2,6 +2,7 @@ import React from 'react';
+ import { MessageCircle } from 'lucide-react';
+ import { Product } from '../types';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ import { buildWhatsAppProductLink, formatFCFA } from '../lib/whatsapp';
+ 
+ interface ProductCardProps {
+@@ -62,6 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, dark = false,
+         ) : (
+           <a
+             href={link}
++            onClick={() => track('order', { pid: product.id, cat: product.category })}
+             target="_blank"
+             rel="noopener noreferrer"
+             className="mt-3 h-11 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors"
+@@ -73,6 +75,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, dark = false,
+         {hasWholesale && !soldOut && (
+           <a
+             href={wholesaleLink}
++            onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
+             target="_blank"
+             rel="noopener noreferrer"
+             className={`mt-1 h-10 inline-flex items-center justify-center text-[13px] font-medium underline underline-offset-4 decoration-gold/70 transition-colors ${dark ? 'text-ivory/80 hover:text-gold' : 'text-onyx/75 hover:text-gold-deep'}`}
+diff --git a/src/components/ShopSection.tsx b/src/components/ShopSection.tsx
+index 187079b..9d3d910 100644
+--- a/src/components/ShopSection.tsx
++++ b/src/components/ShopSection.tsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+ import { MapPin, Clock, Phone, MessageCircle, Navigation } from 'lucide-react';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ import { buildGeneralWhatsAppLink, sanitizePhone } from '../lib/whatsapp';
+ import { IMG } from '../lib/initialData';
+ 
+@@ -41,7 +42,7 @@ export const ShopSection: React.FC = () => {
+           </ul>
+ 
+           <div className="mt-8 grid sm:grid-cols-3 gap-3">
+-            <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="h-12 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors">
++            <a href={whatsapp} onClick={() => track('contact')} target="_blank" rel="noopener noreferrer" className="h-12 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors">
+               <MessageCircle className="w-4 h-4 fill-current" /> WhatsApp
+             </a>
+             <a href={`tel:+${sanitizePhone(settings.whatsappNumber)}`} className="h-12 rounded-full bg-onyx hover:bg-onyx/80 text-ivory text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors">
+diff --git a/src/components/WholesaleSection.tsx b/src/components/WholesaleSection.tsx
+index 9b0adb3..a15b4fd 100644
+--- a/src/components/WholesaleSection.tsx
++++ b/src/components/WholesaleSection.tsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+ import { BadgePercent, Truck, MessageCircle, Boxes } from 'lucide-react';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ import { buildWholesaleWhatsAppLink } from '../lib/whatsapp';
+ 
+ export const WholesaleSection: React.FC = () => {
+@@ -60,6 +61,7 @@ export const WholesaleSection: React.FC = () => {
+ 
+         <a
+           href={link}
++          onClick={() => track('wholesale')}
+           target="_blank"
+           rel="noopener noreferrer"
+           className="btn-gold mt-10 h-14 px-8 rounded-full bg-gold hover:bg-ivory text-onyx font-semibold inline-flex items-center justify-center gap-2.5 transition-colors"
+diff --git a/src/index.css b/src/index.css
+index 36b4408..f676bbf 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -8,6 +8,15 @@
+   --color-gold-deep: #86651C; /* or lisible sur fond clair (contraste 5:1) */
+   --color-wa: #25D366;
+   --color-wa-deep: #0E8A42; /* vert WhatsApp avec texte blanc lisible */
++  /* Espace gérant : papier vert-gris, encre bouteille, or, signaux */
++  --color-papier: #EDEFE8;
++  --color-feuille: #F8F9F5;
++  --color-encre: #123A32;
++  --color-or: #B8862B;
++  --color-or-deep: #7A5712;
++  --color-garance: #A9402E;
++  --color-malachite: #1E6B47;
++  --font-display: 'Bricolage Grotesque', 'Jost', system-ui, sans-serif;
+   --font-serif: 'Cormorant Garamond', Georgia, serif;
+   --font-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+ }
+@@ -57,3 +66,6 @@
+   *, ::before, ::after { animation: none !important; transition: none !important; }
+   .reveal { opacity: 1; transform: none; }
+ }
++
++/* Espace gérant : anneau de focus sombre (contraste 10:1 sur le papier) */
++.gerant :focus-visible { outline: 3px solid var(--color-encre); outline-offset: 2px; }
+diff --git a/src/lib/analytics.ts b/src/lib/analytics.ts
+new file mode 100644
+index 0000000..155285d
+--- /dev/null
++++ b/src/lib/analytics.ts
+@@ -0,0 +1,209 @@
++import { AnalyticsEvent, EventType, Product } from '../types';
++import { hasAdminToken } from './store';
++
++/* ------------------------------------------------------------------ */
++/* Enregistrement (site public)                                        */
++/* ------------------------------------------------------------------ */
++
++const seen = (key: string): boolean => {
++  try {
++    if (sessionStorage.getItem(key)) return true;
++    sessionStorage.setItem(key, '1');
++  } catch {
++    /* navigation privée : on compte quand même */
++  }
++  return false;
++};
++
++/** Envoie un geste anonyme au serveur. Ignoré quand le gérant est connecté. */
++export function track(type: EventType, extra: { pid?: string; cat?: string } = {}) {
++  if (hasAdminToken()) return;
++  if (type === 'view' && extra.pid && seen(`touba_view_${extra.pid}`)) return; // une vue par produit et par visite
++  const body = JSON.stringify({ type, ...extra });
++  try {
++    if (navigator.sendBeacon?.('/api/events', new Blob([body], { type: 'application/json' }))) return;
++  } catch {
++    /* on tente fetch juste après */
++  }
++  fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
++}
++
++export function trackVisitOnce() {
++  if (!seen('touba_visit')) track('visit');
++}
++
++/* ------------------------------------------------------------------ */
++/* Calculs (espace gérant)                                             */
++/* ------------------------------------------------------------------ */
++
++export type Action =
++  | { kind: 'patch'; label: string; productId: string; patch: Partial<Product> }
++  | { kind: 'edit'; label: string; productId: string }
++  | { kind: 'status'; label: string; productId: string };
++
++export interface Insight {
++  id: string;
++  level: 'good' | 'warn' | 'info';
++  title: string;
++  text: string;
++  action?: Action;
++}
++
++export interface ProductStat {
++  product: Product;
++  views: number;
++  orders: number; // clics « Commander » (détail)
++  wholesale: number; // clics « Commander en gros »
++  demands: number; // orders + wholesale
++}
++
++export const PRICE_BRACKETS = [
++  { id: 'lt10', label: 'Moins de 10 000', min: 1, max: 9_999 },
++  { id: '10-20', label: '10 000 à 19 999', min: 10_000, max: 19_999 },
++  { id: '20-40', label: '20 000 à 39 999', min: 20_000, max: 39_999 },
++  { id: '40+', label: '40 000 et plus', min: 40_000, max: Infinity },
++];
++
++const pl = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
++export const WEEKDAYS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
++const DAY = 86_400_000;
++
++export function computeStats(all: AnalyticsEvent[], products: Product[], days: number, categories: { id: string; fr: string }[]) {
++  const now = Date.now();
++  const ev = days ? all.filter((e) => e.t >= now - days * DAY) : all;
++  const count = (type: EventType) => ev.filter((e) => e.type === type).length;
++
++  const visits = count('visit');
++  const views = count('view');
++  const orders = count('order');
++  const wholesale = count('wholesale');
++  const contacts = count('contact');
++  const demands = orders + wholesale;
++
++  const perProduct = new Map<string, { views: number; orders: number; wholesale: number }>();
++  for (const e of ev) {
++    if (!e.pid) continue;
++    const s = perProduct.get(e.pid) ?? { views: 0, orders: 0, wholesale: 0 };
++    if (e.type === 'view') s.views++;
++    else if (e.type === 'order') s.orders++;
++    else if (e.type === 'wholesale') s.wholesale++;
++    perProduct.set(e.pid, s);
++  }
++  const byProduct: ProductStat[] = products.map((product) => {
++    const s = perProduct.get(product.id) ?? { views: 0, orders: 0, wholesale: 0 };
++    return { product, ...s, demands: s.orders + s.wholesale };
++  });
++  const ranked = [...byProduct].sort((a, b) => b.demands - a.demands || b.views - a.views);
++
++  const byCategory = categories.map((c) => {
++    const list = byProduct.filter((s) => s.product.category === c.id);
++    const v = list.reduce((n, s) => n + s.views, 0);
++    const d = list.reduce((n, s) => n + s.demands, 0);
++    const clicks = ev.filter((e) => e.type === 'category' && e.cat === c.id).length;
++    return { id: c.id, label: c.fr, views: v, demands: d, clicks, interest: v + d * 3 + clicks };
++  });
++
++  const byPrice = PRICE_BRACKETS.map((b) => {
++    const list = byProduct.filter((s) => s.product.price >= b.min && s.product.price <= b.max);
++    return { ...b, products: list.length, views: list.reduce((n, s) => n + s.views, 0), demands: list.reduce((n, s) => n + s.demands, 0) };
++  });
++
++  const span = Math.min(days || 14, 14);
++  const daily = Array.from({ length: span }, (_, i) => {
++    const d = new Date(now - (span - 1 - i) * DAY);
++    d.setHours(0, 0, 0, 0);
++    const slice = ev.filter((e) => e.t >= d.getTime() && e.t < d.getTime() + DAY);
++    return {
++      label: d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }),
++      short: String(d.getDate()),
++      visits: slice.filter((e) => e.type === 'visit').length,
++      demands: slice.filter((e) => e.type === 'order' || e.type === 'wholesale').length,
++    };
++  });
++
++  const intent = ev.filter((e) => e.type === 'order' || e.type === 'wholesale' || e.type === 'contact');
++  const hours = Array.from({ length: 24 }, (_, h) => intent.filter((e) => new Date(e.t).getHours() === h).length);
++  const weekdays = Array.from({ length: 7 }, (_, d) => intent.filter((e) => new Date(e.t).getDay() === d).length);
++
++  const insights = buildInsights({ visits, views, demands, wholesale, ranked, byCategory, byPrice, hours, weekdays });
++  return { visits, views, orders, wholesale, contacts, demands, per100: visits ? Math.round((demands / visits) * 100) : 0, ranked, byProduct, byCategory, byPrice, daily, hours, weekdays, insights, total: ev.length };
++}
++
++export type Stats = ReturnType<typeof computeStats>;
++
++function buildInsights(d: {
++  visits: number;
++  views: number;
++  demands: number;
++  wholesale: number;
++  ranked: ProductStat[];
++  byCategory: { label: string; views: number; demands: number; interest: number }[];
++  byPrice: { label: string; views: number; demands: number }[];
++  hours: number[];
++  weekdays: number[];
++}): Insight[] {
++  if (d.visits + d.views + d.demands < 10) {
++    return [{ id: 'empty', level: 'info', title: 'Pas encore assez de données', text: 'Les conseils apparaissent après une dizaine de gestes de clientes. Partagez le lien de la boutique dans vos statuts WhatsApp pour commencer.' }];
++  }
++  const out: Insight[] = [];
++  const live = d.ranked.filter((s) => !s.product.hidden);
++  const top = live.find((s) => !s.product.soldOut && s.demands + s.views > 0);
++
++  if (top) {
++    out.push({ id: 'top', level: 'good', title: `${top.product.name} est votre meilleure pièce`, text: `${pl(top.demands, 'demande', 'demandes')} pour ${pl(top.views, 'vue', 'vues')}. Annoncez-la dans votre statut, gardez du stock et cherchez des modèles proches.`, action: { kind: 'status', label: 'Créer un statut WhatsApp', productId: top.product.id } });
++  }
++
++  const missed = live.filter((s) => s.product.soldOut && s.views + s.demands >= 3).sort((a, b) => b.views + b.demands - (a.views + a.demands))[0];
++  if (missed) {
++    out.push({ id: 'soldout', level: 'warn', title: `${missed.product.name} est épuisée mais on la demande`, text: `${pl(missed.views, 'vue', 'vues')} et ${pl(missed.demands, 'demande', 'demandes')} sur une pièce indisponible. Des clientes repartent déçues : rachetez-la ou proposez une pièce proche.`, action: { kind: 'patch', label: 'Remettre en vente', productId: missed.product.id, patch: { soldOut: false } } });
++  }
++
++  const stuck = live.filter((s) => !s.product.soldOut && s.views >= 5 && s.demands === 0).sort((a, b) => b.views - a.views)[0];
++  if (stuck) {
++    out.push({ id: 'stuck', level: 'warn', title: `${stuck.product.name} est regardée mais jamais demandée`, text: `${stuck.views} vues, aucune demande. Essayez une meilleure photo, un prix plus bas ou une petite promotion.`, action: { kind: 'edit', label: 'Modifier le produit', productId: stuck.product.id } });
++  }
++
++  const noGros = live.find((s) => s.demands >= 3 && !(s.product.wholesalePrice && s.product.wholesalePrice > 0));
++  if (noGros) {
++    out.push({ id: 'nogros', level: 'info', title: `${noGros.product.name} n'a pas de prix de gros`, text: 'Cette pièce est très demandée. Affichez un prix de gros pour attirer les revendeuses.', action: { kind: 'edit', label: 'Ajouter un prix de gros', productId: noGros.product.id } });
++  }
++
++  const unseen = live.filter((s) => s.views === 0 && !s.product.soldOut);
++  if (unseen.length > 0) {
++    const first = unseen[0].product;
++    out.push({ id: 'unseen', level: 'info', title: unseen.length > 1 ? `${unseen.length} produits jamais ouverts` : '1 produit jamais ouvert', text: `${unseen.slice(0, 3).map((s) => s.product.name).join(', ')}${unseen.length > 3 ? '…' : ''}. Mettez-les en « Nouveau » et envoyez leur photo en statut.`, action: first.isNew ? { kind: 'status', label: 'Créer un statut WhatsApp', productId: first.id } : { kind: 'patch', label: `Marquer « Nouveau »`, productId: first.id, patch: { isNew: true } } });
++  }
++
++  const bestCat = [...d.byCategory].sort((a, b) => b.interest - a.interest)[0];
++  const worstCat = [...d.byCategory].sort((a, b) => a.interest - b.interest)[0];
++  if (bestCat && bestCat.interest > 0) {
++    out.push({ id: 'bestcat', level: 'good', title: `${bestCat.label} : la catégorie qui attire le plus`, text: `${pl(bestCat.views, 'vue', 'vues')} et ${pl(bestCat.demands, 'demande', 'demandes')}. Élargissez le choix dans cette catégorie à votre prochain achat.` });
++  }
++  if (worstCat && bestCat && worstCat.label !== bestCat.label && bestCat.interest >= 5) {
++    out.push({ id: 'worstcat', level: 'info', title: `${worstCat.label} : la catégorie la moins regardée`, text: 'Testez de nouvelles photos ou un lot (collier et boucles ensemble) avant de racheter du stock.' });
++  }
++
++  const bestPrice = [...d.byPrice].sort((a, b) => b.demands * 3 + b.views - (a.demands * 3 + a.views))[0];
++  if (bestPrice && bestPrice.views + bestPrice.demands > 0) {
++    out.push({ id: 'price', level: 'info', title: `Budget préféré : ${bestPrice.label} FCFA`, text: 'Achetez surtout des modèles dans cette fourchette et gardez une ou deux pièces plus chères comme vitrine.' });
++  }
++
++  if (d.wholesale > 0) {
++    out.push({ id: 'gros', level: 'good', title: `${pl(d.wholesale, 'demande', 'demandes')} de prix de gros`, text: 'Des revendeuses vous contactent. Répondez vite et préparez des lots (par exemple 6 pièces de la même catégorie).' });
++  }
++
++  if (Math.max(...d.hours) > 0) {
++    const h = d.hours.indexOf(Math.max(...d.hours));
++    const day = WEEKDAYS[d.weekdays.indexOf(Math.max(...d.weekdays))];
++    out.push({ id: 'time', level: 'info', title: `Moment fort : le ${day} vers ${h} h`, text: `Publiez votre statut une heure avant, vers ${(h + 23) % 24} h, pour être vue quand les clientes sont prêtes à commander.` });
++  }
++  return out;
++}
++
++export function exportCsv(stats: Stats, categoryLabel: (id: string) => string): string {
++  const rows = [['Référence', 'Nom', 'Catégorie', 'Prix détail FCFA', 'Prix gros FCFA', 'Vues', 'Demandes détail', 'Demandes gros', 'Statut']];
++  stats.ranked.forEach((s) =>
++    rows.push([s.product.reference, s.product.name, categoryLabel(s.product.category), String(s.product.price), String(s.product.wholesalePrice ?? 0), String(s.views), String(s.orders), String(s.wholesale), s.product.hidden ? 'Masqué' : s.product.soldOut ? 'Épuisé' : 'En vente']),
++  );
++  return '\ufeff' + rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(';')).join('\n');
++}
+diff --git a/src/lib/store.ts b/src/lib/store.ts
+index ac7faee..8d1f1a0 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -1,5 +1,5 @@
+ import { useSyncExternalStore } from 'react';
+-import { AppLanguage, Product, ProductCategory, StoreSettings } from '../types';
++import { AnalyticsEvent, AppLanguage, Product, ProductCategory, StoreSettings } from '../types';
+ import { CATEGORIES, INITIAL_SETTINGS } from './initialData';
+ 
+ const LANG_KEY = 'touba_lang_v2';
+@@ -175,6 +175,10 @@ const actions = {
+   },
+ };
+ 
++export const hasAdminToken = () => token !== null;
++export const fetchEvents = (days: number) => api<{ events: AnalyticsEvent[]; truncated: boolean }>(`/stats?days=${days}`);
++export const deleteAllEvents = () => api<{ ok: true }>('/events', { method: 'DELETE' });
++
+ void load();
+ 
+ export function useStore() {
+diff --git a/src/manager/Manager.tsx b/src/manager/Manager.tsx
+new file mode 100644
+index 0000000..38a0631
+--- /dev/null
++++ b/src/manager/Manager.tsx
+@@ -0,0 +1,196 @@
++import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
++import { Check, Gem, LayoutGrid, Lock, LogOut, Megaphone, Store as StoreIcon } from 'lucide-react';
++import { deleteAllEvents, fetchEvents, useStore } from '../lib/store';
++import { CATEGORIES } from '../lib/initialData';
++import { Action, computeStats } from '../lib/analytics';
++import { AnalyticsEvent } from '../types';
++import { Overview } from './Overview';
++import { Products } from './Products';
++import { Marketing } from './Marketing';
++import { Shop } from './Shop';
++import { btnPrimary, inputCls } from './ui';
++
++type Tab = 'apercu' | 'produits' | 'marketing' | 'boutique';
++const TABS = [
++  { id: 'apercu', label: 'Aperçu', Icon: LayoutGrid },
++  { id: 'produits', label: 'Produits', Icon: Gem },
++  { id: 'marketing', label: 'Marketing', Icon: Megaphone },
++  { id: 'boutique', label: 'Boutique', Icon: StoreIcon },
++] as const;
++
++/** L'onglet vient de l'adresse (#gerant/produits) : le bouton Retour et les favoris fonctionnent. */
++const tabFromHash = (): Tab => {
++  const t = window.location.hash.split('/')[1];
++  return TABS.find((x) => x.id === t)?.id ?? 'apercu';
++};
++
++/** Police des titres, chargée seulement quand le gérant ouvre son espace. */
++function useDisplayFont() {
++  useEffect(() => {
++    if (document.getElementById('gerant-font')) return;
++    const l = document.createElement('link');
++    l.id = 'gerant-font';
++    l.rel = 'stylesheet';
++    l.href = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&display=swap';
++    document.head.appendChild(l);
++  }, []);
++}
++
++const Login: React.FC = () => {
++  const s = useStore();
++  const [password, setPassword] = useState('');
++  const [error, setError] = useState('');
++  const [busy, setBusy] = useState(false);
++  return (
++    <main className="min-h-full flex items-center justify-center p-6">
++      <form
++        className="w-full max-w-sm"
++        onSubmit={async (e) => {
++          e.preventDefault();
++          setBusy(true);
++          const err = await s.loginAdmin(password);
++          setBusy(false);
++          if (err) setError(err);
++        }}
++      >
++        <span className="w-12 h-12 rounded-full bg-encre text-feuille flex items-center justify-center"><Lock className="w-5 h-5" /></span>
++        <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-encre">Espace gérant</h1>
++        <p className="mt-2 text-encre/75">Suivez les produits que vos clientes demandent, mettez à jour vos prix et préparez vos statuts.</p>
++        <label htmlFor="g-pass" className="sr-only">Mot de passe</label>
++        <input id="g-pass" type="password" autoFocus autoComplete="current-password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputCls} mt-6`} />
++        {error && <p role="alert" className="mt-3 text-sm text-garance">{error}</p>}
++        <button type="submit" disabled={busy || !password} className={`${btnPrimary} w-full mt-4`}>{busy ? 'Connexion…' : 'Se connecter'}</button>
++        <a href="#" className="mt-4 inline-flex h-11 items-center text-sm underline underline-offset-4 decoration-or">Retour à la boutique</a>
++      </form>
++    </main>
++  );
++};
++
++export const Manager: React.FC = () => {
++  useDisplayFont();
++  const s = useStore();
++  const { isAdmin, products, settings } = s;
++  const [tab, setTab] = useState<Tab>(tabFromHash);
++  const [period, setPeriod] = useState(30);
++  const [data, setData] = useState<{ events: AnalyticsEvent[]; truncated: boolean } | null>(null);
++  const [loading, setLoading] = useState(false);
++  const [error, setError] = useState('');
++  const [openId, setOpenId] = useState<string | null>(null);
++  const [statusId, setStatusId] = useState<string | null>(null);
++  const scroller = useRef<HTMLDivElement>(null);
++  const [busy, setBusy] = useState(false);
++  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
++
++  const say = useCallback((msg: string, ok = true) => {
++    setToast({ msg, ok });
++    setTimeout(() => setToast(null), 3500);
++  }, []);
++
++  const load = useCallback(async () => {
++    setLoading(true);
++    setError('');
++    try {
++      setData(await fetchEvents(period));
++    } catch (e) {
++      setError(e instanceof Error ? e.message : 'Impossible de charger les chiffres.');
++    } finally {
++      setLoading(false);
++    }
++  }, [period]);
++
++  useEffect(() => {
++    if (isAdmin) void load();
++  }, [isAdmin, load]);
++
++  const stats = useMemo(() => computeStats(data?.events ?? [], products, period, CATEGORIES), [data, products, period]);
++
++  useEffect(() => {
++    const onHash = () => setTab(tabFromHash());
++    window.addEventListener('hashchange', onHash);
++    return () => window.removeEventListener('hashchange', onHash);
++  }, []);
++  useEffect(() => {
++    scroller.current?.scrollTo({ top: 0 });
++  }, [tab]);
++
++  const go = (t: Tab) => {
++    window.location.hash = `gerant/${t}`;
++  };
++
++  const onAction = async (a: Action) => {
++    if (a.kind === 'patch') {
++      setBusy(true);
++      const err = await s.updateProduct(a.productId, a.patch);
++      setBusy(false);
++      return say(err ?? 'Modifié. Le site est à jour.', !err);
++    }
++    if (a.kind === 'edit') setOpenId(a.productId);
++    else setStatusId(a.productId);
++    go(a.kind === 'edit' ? 'produits' : 'marketing');
++  };
++
++  const clearAll = async () => {
++    if (!confirm('Effacer toutes les statistiques ? Cette action est définitive.')) return;
++    try {
++      await deleteAllEvents();
++      say('Statistiques remises à zéro.');
++      void load();
++    } catch (e) {
++      say(e instanceof Error ? e.message : 'Échec.', false);
++    }
++  };
++
++  const nav = (cls: string, item: string) =>
++    TABS.map(({ id, label, Icon }) => (
++      <button key={id} type="button" onClick={() => go(id)} aria-current={tab === id ? 'page' : undefined} className={`${cls} ${tab === id ? item : ''}`}>
++        <Icon className="w-5 h-5" aria-hidden="true" />
++        <span>{label}</span>
++      </button>
++    ));
++
++  return (
++    <div ref={scroller} className="gerant fixed inset-0 overflow-y-auto bg-papier text-encre font-sans">
++      {!isAdmin ? (
++        <Login />
++      ) : (
++        <div className="min-h-full lg:grid lg:grid-cols-[15rem_1fr]">
++          <aside className="hidden lg:flex flex-col gap-1 sticky top-0 h-screen p-5 border-r border-encre/20">
++            <div className="font-display text-xl font-semibold mb-4">{settings.shopName}</div>
++            {nav('h-12 px-3 rounded-lg flex items-center gap-3 text-[15px] cursor-pointer text-encre/80 hover:bg-encre/10', 'bg-encre text-feuille hover:bg-encre')}
++            <div className="mt-auto flex flex-col gap-1 text-sm">
++              <a href="#" className="h-11 px-3 flex items-center underline underline-offset-4 decoration-or">Voir la boutique</a>
++              <button type="button" onClick={() => { s.logoutAdmin(); }} className="h-11 px-3 flex items-center gap-2 cursor-pointer text-left"><LogOut className="w-4 h-4" /> Déconnexion</button>
++            </div>
++          </aside>
++
++          <div className="min-w-0">
++            <header className="lg:hidden sticky top-0 z-10 bg-papier/95 backdrop-blur border-b border-encre/15 px-4 h-14 flex items-center justify-between pt-[env(safe-area-inset-top)]">
++              <span className="font-display text-lg font-semibold">{settings.shopName}</span>
++              <div className="flex items-center gap-1 text-sm">
++                <a href="#" className="h-11 px-3 inline-flex items-center underline underline-offset-4 decoration-or">Boutique</a>
++                <button type="button" onClick={() => s.logoutAdmin()} className="w-11 h-11 flex items-center justify-center cursor-pointer" aria-label="Se déconnecter"><LogOut className="w-5 h-5" /></button>
++              </div>
++            </header>
++
++            <main className="px-4 sm:px-8 lg:px-12 pt-6 pb-32 lg:pb-16 max-w-3xl">
++              {tab === 'apercu' && <Overview stats={stats} period={period} onPeriod={setPeriod} loading={loading} error={error} truncated={Boolean(data?.truncated)} onRetry={load} onAction={onAction} busy={busy} />}
++              {tab === 'produits' && <Products stats={stats} say={say} openId={openId} onOpened={() => setOpenId(null)} />}
++              {tab === 'marketing' && <Marketing stats={stats} period={period} onPeriod={setPeriod} statusId={statusId} onClearAll={clearAll} />}
++              {tab === 'boutique' && <Shop say={say} />}
++            </main>
++
++            <nav aria-label="Navigation" className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-feuille border-t border-encre/20 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
++              {nav('h-16 flex flex-col items-center justify-center gap-0.5 text-[12px] cursor-pointer text-encre/70', 'text-encre font-semibold shadow-[inset_0_3px_0_var(--color-or)]')}
++            </nav>
++          </div>
++        </div>
++      )}
++
++      {toast && (
++        <div role="status" className={`fixed z-30 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm bottom-24 lg:bottom-6 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2 shadow-lg ${toast.ok ? 'bg-encre text-feuille' : 'bg-garance text-white'}`}>
++          {toast.ok && <Check className="w-4 h-4 shrink-0" />} {toast.msg}
++        </div>
++      )}
++    </div>
++  );
++};
+diff --git a/src/manager/Marketing.tsx b/src/manager/Marketing.tsx
+new file mode 100644
+index 0000000..c80aacd
+--- /dev/null
++++ b/src/manager/Marketing.tsx
+@@ -0,0 +1,208 @@
++import React, { useEffect, useMemo, useState } from 'react';
++import { Check, Copy, Download, MessageCircle, Trash2 } from 'lucide-react';
++import { useStore } from '../lib/store';
++import { CATEGORIES } from '../lib/initialData';
++import { WEEKDAYS, Stats, exportCsv } from '../lib/analytics';
++import { formatFCFA } from '../lib/whatsapp';
++import { Product } from '../types';
++import { PeriodChips } from './Overview';
++import { Bar, Section, btnGhost, btnPrimary, fmt, inputCls, labelCls, plural } from './ui';
++
++const caption = (p: Product, shop: string, url: string) =>
++  [
++    `${p.isNew ? '✨ Nouveau ! ' : '✨ '}${p.name}`,
++    p.price > 0 ? `Prix : ${formatFCFA(p.price)}` : 'Prix sur demande',
++    (p.wholesalePrice ?? 0) > 0 ? `Prix de gros : ${formatFCFA(p.wholesalePrice!)}` : '',
++    '',
++    `📲 Commandez sur WhatsApp ou voyez tout le catalogue : ${url}`,
++    'Livraison dans tout le Cameroun. Paiement à la livraison, Orange Money ou MTN MoMo.',
++    `${shop}`,
++  ]
++    .filter((l, i, a) => l !== '' || (i > 0 && a[i - 1] !== ''))
++    .join('\n');
++
++interface Props {
++  stats: Stats;
++  period: number;
++  onPeriod: (d: number) => void;
++  statusId: string | null;
++  onClearAll: () => void;
++}
++
++export const Marketing: React.FC<Props> = ({ stats, period, onPeriod, statusId, onClearAll }) => {
++  const { products, settings } = useStore();
++  const sellable = products.filter((p) => !p.hidden && !p.soldOut);
++  const suggested = stats.ranked.find((r) => !r.product.hidden && !r.product.soldOut)?.product.id ?? sellable[0]?.id ?? '';
++  const [pid, setPid] = useState(statusId ?? suggested);
++  const [text, setText] = useState('');
++  const [copied, setCopied] = useState(false);
++  const product = products.find((p) => p.id === pid);
++
++  useEffect(() => {
++    if (statusId) setPid(statusId);
++  }, [statusId]);
++  useEffect(() => {
++    if (!pid && suggested) setPid(suggested);
++  }, [pid, suggested]);
++  useEffect(() => {
++    if (product) setText(caption(product, settings.shopName, window.location.origin));
++  }, [product, settings.shopName]);
++
++  const copy = async () => {
++    try {
++      await navigator.clipboard.writeText(text);
++      setCopied(true);
++      setTimeout(() => setCopied(false), 2500);
++    } catch {
++      /* l'utilisatrice peut copier à la main */
++    }
++  };
++
++  const hourRange = useMemo(() => Array.from({ length: 17 }, (_, i) => i + 6), []);
++  const maxHour = Math.max(1, ...hourRange.map((h) => stats.hours[h]));
++  const bestHour = stats.hours.indexOf(Math.max(...stats.hours));
++  const maxWd = Math.max(1, ...stats.weekdays);
++  const maxCat = Math.max(1, ...stats.byCategory.map((c) => c.interest));
++  const maxPrice = Math.max(1, ...stats.byPrice.map((p) => p.views + p.demands * 3));
++  const totalD = stats.orders + stats.wholesale;
++  const tips = stats.insights.filter((i) => !i.action);
++
++  const download = () => {
++    const blob = new Blob([exportCsv(stats, (id) => CATEGORIES.find((c) => c.id === id)?.fr ?? id)], { type: 'text/csv;charset=utf-8' });
++    const a = document.createElement('a');
++    a.href = URL.createObjectURL(blob);
++    a.download = `touba-produits-${new Date().toISOString().slice(0, 10)}.csv`;
++    a.click();
++    URL.revokeObjectURL(a.href);
++  };
++
++  return (
++    <div>
++      <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre max-w-xl">Faites connaître vos meilleures pièces.</h1>
++      <div className="mt-4"><PeriodChips period={period} onChange={onPeriod} /></div>
++
++      <Section title="Votre statut WhatsApp" hint="Le produit le plus demandé est choisi pour vous. Copiez le texte, puis ajoutez la photo.">
++        {sellable.length === 0 ? (
++          <p className="text-sm text-encre/70">Aucun produit en vente. Ajoutez un produit ou remettez-en un en vente.</p>
++        ) : (
++          <div className="grid sm:grid-cols-[10rem_1fr] gap-5 items-start">
++            {product && (
++              <div>
++                <img src={product.images[0]} alt="" className="w-40 h-40 rounded-md object-cover bg-papier" />
++                <a href={product.images[0]} download={`${product.reference}.webp`} className="mt-2 inline-flex items-center gap-1.5 h-11 text-sm font-medium underline underline-offset-4 decoration-or">
++                  <Download className="w-4 h-4" /> Enregistrer la photo
++                </a>
++              </div>
++            )}
++            <div className="space-y-3">
++              <div>
++                <label className={labelCls} htmlFor="m-product">Produit à annoncer</label>
++                <select id="m-product" value={pid} onChange={(e) => setPid(e.target.value)} className={inputCls}>
++                  {sellable.map((p) => (
++                    <option key={p.id} value={p.id}>{p.name} (Réf. {p.reference})</option>
++                  ))}
++                </select>
++              </div>
++              <div>
++                <label className={labelCls} htmlFor="m-text">Texte du statut</label>
++                <textarea id="m-text" rows={8} value={text} onChange={(e) => setText(e.target.value)} className={`${inputCls} h-auto py-3 leading-relaxed`} />
++              </div>
++              <div className="flex flex-wrap gap-3">
++                <button type="button" onClick={copy} className={btnPrimary}>
++                  {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />} {copied ? 'Texte copié' : 'Copier le texte'}
++                </button>
++                <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer" className={btnGhost}>
++                  <MessageCircle className="w-5 h-5" /> Ouvrir WhatsApp
++                </a>
++              </div>
++            </div>
++          </div>
++        )}
++      </Section>
++
++      <Section title="Quand publier" hint={stats.hours[bestHour] > 0 ? `Les clics pour commander sont les plus nombreux vers ${bestHour} h. Publiez une heure avant.` : "Pas encore assez de clics pour trouver l'heure idéale."}>
++        <div className="flex items-end gap-1 h-24" role="img" aria-label="Clics par heure de la journée">
++          {hourRange.map((h) => (
++            <div key={h} className="flex-1 flex flex-col justify-end h-full" title={`${h} h : ${stats.hours[h]}`}>
++              <span className={`rounded-t-sm ${h === bestHour && stats.hours[h] > 0 ? 'bg-or' : 'bg-encre/30'}`} style={{ height: `${(stats.hours[h] / maxHour) * 100}%`, minHeight: stats.hours[h] ? 3 : 0 }} />
++            </div>
++          ))}
++        </div>
++        <div className="flex justify-between text-xs text-encre/75 mt-1.5"><span>6 h</span><span>12 h</span><span>18 h</span><span>22 h</span></div>
++        <div className="mt-5 grid grid-cols-7 gap-1.5">
++          {stats.weekdays.map((n, d) => (
++            <div key={d} className="text-center">
++              <div className="h-14 flex items-end"><span className={`w-full rounded-t-sm ${n === maxWd && n > 0 ? 'bg-or' : 'bg-encre/30'}`} style={{ height: `${(n / maxWd) * 100}%`, minHeight: n ? 3 : 0 }} /></div>
++              <div className="mt-1 text-xs text-encre/75" title={WEEKDAYS[d]}>{WEEKDAYS[d].slice(0, 3)}.</div>
++            </div>
++          ))}
++        </div>
++      </Section>
++
++      <Section title="Ce que vos clientes cherchent">
++        <h3 className="font-sans font-semibold text-encre">Catégories</h3>
++        <ul className="mt-2 space-y-3">
++          {[...stats.byCategory].sort((a, b) => b.interest - a.interest).map((c) => (
++            <li key={c.id}>
++              <div className="flex justify-between gap-3 text-sm">
++                <span>{c.label}</span>
++                <span className="text-encre/70 tabular-nums">{plural(c.views, 'vue', 'vues')}, {plural(c.demands, 'demande', 'demandes')}</span>
++              </div>
++              <Bar value={c.interest} max={maxCat} />
++            </li>
++          ))}
++        </ul>
++        <h3 className="mt-6 font-sans font-semibold text-encre">Budget</h3>
++        <ul className="mt-2 space-y-3">
++          {stats.byPrice.map((p) => (
++            <li key={p.id}>
++              <div className="flex justify-between gap-3 text-sm">
++                <span>{p.label} FCFA</span>
++                <span className="text-encre/70 tabular-nums">{plural(p.products, 'produit', 'produits')}, {plural(p.demands, 'demande', 'demandes')}</span>
++              </div>
++              <Bar value={p.views + p.demands * 3} max={maxPrice} tone="bg-encre" />
++            </li>
++          ))}
++        </ul>
++        <h3 className="mt-6 font-sans font-semibold text-encre">Détail ou gros</h3>
++        {totalD === 0 ? (
++          <p className="mt-2 text-sm text-encre/70">Aucun clic pour commander sur cette période.</p>
++        ) : (
++          <>
++            <div className="mt-2 h-4 rounded-full overflow-hidden flex bg-encre/10" role="img" aria-label={`${stats.orders} au détail, ${stats.wholesale} en gros`}>
++              <span className="bg-or" style={{ width: `${(stats.orders / totalD) * 100}%` }} />
++              <span className="bg-malachite" style={{ width: `${(stats.wholesale / totalD) * 100}%` }} />
++            </div>
++            <p className="mt-2 text-sm text-encre/80">
++              {Math.round((stats.orders / totalD) * 100)} % au détail ({fmt(stats.orders)}), {Math.round((stats.wholesale / totalD) * 100)} % en gros ({fmt(stats.wholesale)}).
++            </p>
++          </>
++        )}
++      </Section>
++
++      {tips.length > 0 && (
++        <Section title="Conseils de stratégie">
++          <ul className="space-y-4">
++            {tips.map((t) => (
++              <li key={t.id} className="max-w-prose">
++                <h3 className="font-display text-lg font-semibold leading-snug text-encre">{t.title}</h3>
++                <p className="text-[15px] text-encre/80 leading-relaxed">{t.text}</p>
++              </li>
++            ))}
++          </ul>
++        </Section>
++      )}
++
++      <Section title="Vos données">
++        <div className="flex flex-wrap gap-3">
++          <button type="button" onClick={download} className={btnGhost}>
++            <Download className="w-5 h-5" /> Exporter pour Excel
++          </button>
++          <button type="button" onClick={onClearAll} className="h-12 px-6 rounded-full text-garance font-medium hover:bg-garance/10 inline-flex items-center gap-2 cursor-pointer">
++            <Trash2 className="w-5 h-5" /> Remettre les statistiques à zéro
++          </button>
++        </div>
++      </Section>
++    </div>
++  );
++};
+diff --git a/src/manager/Overview.tsx b/src/manager/Overview.tsx
+new file mode 100644
+index 0000000..e2cd821
+--- /dev/null
++++ b/src/manager/Overview.tsx
+@@ -0,0 +1,170 @@
++import React from 'react';
++import { Action, Stats } from '../lib/analytics';
++import { Section, btnGhost, btnPrimary, fmt, plural } from './ui';
++
++export const PERIODS = [
++  { days: 7, chip: '7 jours', phrase: 'Ces 7 derniers jours' },
++  { days: 30, chip: '30 jours', phrase: 'Ces 30 derniers jours' },
++  { days: 90, chip: '90 jours', phrase: 'Ces 90 derniers jours' },
++  { days: 0, chip: 'Tout', phrase: 'Depuis le début' },
++];
++
++export const PeriodChips: React.FC<{ period: number; onChange: (d: number) => void }> = ({ period, onChange }) => (
++  <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Période">
++    {PERIODS.map((p) => (
++      <button
++        key={p.days}
++        type="button"
++        onClick={() => onChange(p.days)}
++        aria-pressed={period === p.days}
++        className={`h-11 px-4 rounded-full text-sm whitespace-nowrap cursor-pointer border transition-colors ${period === p.days ? 'bg-encre text-feuille border-encre' : 'bg-feuille border-encre/55 text-encre'}`}
++      >
++        {p.chip}
++      </button>
++    ))}
++  </div>
++);
++
++const levelBar = { good: 'border-malachite', warn: 'border-garance', info: 'border-or' } as const;
++
++interface Props {
++  stats: Stats;
++  period: number;
++  onPeriod: (d: number) => void;
++  loading: boolean;
++  error: string;
++  truncated: boolean;
++  onRetry: () => void;
++  onAction: (a: Action) => void;
++  busy: boolean;
++}
++
++export const Overview: React.FC<Props> = ({ stats, period, onPeriod, loading, error, truncated, onRetry, onAction, busy }) => {
++  const phrase = PERIODS.find((p) => p.days === period)?.phrase ?? '';
++  const top = stats.ranked.find((s) => s.demands + s.views > 0);
++  const todo = stats.insights.filter((i) => i.action).slice(0, 4);
++  const maxDemand = Math.max(1, ...stats.ranked.map((s) => s.demands));
++  const maxDay = Math.max(1, ...stats.daily.map((d) => Math.max(d.visits, d.demands)));
++
++  const figures = [
++    { label: 'Visites de la boutique', value: stats.visits },
++    { label: 'Fiches produit ouvertes', value: stats.views },
++    { label: 'Clics Commander', value: stats.orders },
++    { label: 'Clics Commander en gros', value: stats.wholesale },
++  ];
++
++  return (
++    <div>
++      <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre max-w-xl">
++        {phrase} : {plural(stats.demands, 'clic', 'clics')} pour commander.
++      </h1>
++      <div className="mt-4"><PeriodChips period={period} onChange={onPeriod} /></div>
++
++      {error && (
++        <div role="alert" className="mt-5 rounded-lg bg-garance/10 border border-garance/30 p-4 text-sm text-garance flex items-center justify-between gap-3">
++          <span>{error}</span>
++          <button type="button" onClick={onRetry} className="h-10 px-4 rounded-full bg-garance text-white font-medium cursor-pointer shrink-0">Réessayer</button>
++        </div>
++      )}
++      {loading && <p className="mt-5 text-sm text-encre/75" role="status">Chargement des chiffres…</p>}
++      {truncated && <p className="mt-5 text-sm text-encre/75">Beaucoup d'activité : seuls les 20 000 gestes les plus récents sont comptés. Choisissez une période plus courte.</p>}
++
++      {top ? (
++        <div className="mt-7 relative">
++          <img src={top.product.images[0]} alt="" className="w-full aspect-[4/3] sm:aspect-[2/1] object-cover rounded-md bg-papier" />
++          <div
++            className="absolute -bottom-6 left-3 sm:left-5 bg-feuille pl-9 pr-9 py-3 max-w-[85%]"
++            style={{ clipPath: 'polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%)' }}
++          >
++            <span className="absolute left-3 top-3 w-3 h-3 rounded-full bg-papier border border-encre/55" aria-hidden="true" />
++            <div className="text-xs text-encre/75">La plus demandée, réf. {top.product.reference}</div>
++            <div className="font-display text-xl font-semibold leading-tight text-encre">{top.product.name}</div>
++            <div className="text-sm text-encre/80">
++              {plural(top.demands, 'demande', 'demandes')}
++              {top.wholesale > 0 && ` dont ${top.wholesale} en gros`}, {plural(top.views, 'vue', 'vues')}
++            </div>
++          </div>
++        </div>
++      ) : (
++        !loading && !error && (
++          <p className="mt-7 rounded-lg bg-feuille border border-encre/15 p-4 text-sm text-encre/80 max-w-prose">
++            Aucune activité sur cette période. Partagez le lien de la boutique dans vos statuts WhatsApp : la pièce la plus demandée apparaîtra ici.
++          </p>
++        )
++      )}
++
++      <dl className={`${top ? 'mt-14' : 'mt-8'} grid grid-cols-2 sm:grid-cols-4 gap-x-6`}>
++        {figures.map((f) => (
++          <div key={f.label} className="py-3 border-t border-encre/20">
++            <dd className="font-display text-4xl font-semibold tabular-nums text-encre">{fmt(f.value)}</dd>
++            <dt className="text-sm text-encre/70 leading-snug">{f.label}</dt>
++          </div>
++        ))}
++      </dl>
++      {stats.visits > 0 && <p className="mt-2 text-sm text-encre/70">Sur 100 visites, {stats.per100} clics pour commander sur WhatsApp.</p>}
++
++      <Section title="À faire maintenant" hint="Chaque conseil vient des gestes de vos clientes et s'applique en un geste.">
++        {todo.length === 0 ? (
++          <p className="text-sm text-encre/70">Rien à corriger pour le moment. Les conseils apparaissent quand les clientes ouvrent et commandent vos produits.</p>
++        ) : (
++          <ul className="space-y-3">
++            {todo.map((i) => (
++              <li key={i.id} className={`bg-feuille rounded-xl border-l-4 ${levelBar[i.level]} pl-4 pr-4 py-4`}>
++                <h3 className="font-display text-lg font-semibold leading-snug text-encre">{i.title}</h3>
++                <p className="mt-1 text-[15px] text-encre/80 leading-relaxed max-w-prose">{i.text}</p>
++                {i.action && (
++                  <button type="button" disabled={busy} onClick={() => onAction(i.action!)} className={`mt-3 h-11 px-5 text-sm ${i.level === 'warn' ? btnPrimary : btnGhost}`}>
++                    {busy && i.action.kind === 'patch' ? 'Un instant…' : i.action.label}
++                  </button>
++                )}
++              </li>
++            ))}
++          </ul>
++        )}
++      </Section>
++
++      <Section title="Les plus demandées" hint="Barre dorée : clics Commander. Barre verte : clics Commander en gros.">
++        <ol className="space-y-4">
++          {stats.ranked.slice(0, 6).map((s, i) => (
++            <li key={s.product.id} className="grid grid-cols-[1.25rem_3rem_1fr] items-center gap-3">
++              <span className="font-display text-lg text-encre/75 tabular-nums">{i + 1}</span>
++              <img src={s.product.images[0]} alt="" loading="lazy" decoding="async" className="w-12 h-12 rounded-md object-cover bg-papier" />
++              <div className="min-w-0">
++                <div className="flex items-baseline justify-between gap-3">
++                  <span className="truncate font-medium text-encre">{s.product.name}</span>
++                  <span className="text-sm text-encre/70 tabular-nums shrink-0">{plural(s.demands, 'demande', 'demandes')}</span>
++                </div>
++                <div className="mt-1.5 h-2.5 rounded-full bg-encre/10 overflow-hidden flex" role="presentation">
++                  <span className="bg-or h-full" style={{ width: `${(s.orders / maxDemand) * 100}%` }} />
++                  <span className="bg-malachite h-full" style={{ width: `${(s.wholesale / maxDemand) * 100}%` }} />
++                </div>
++                <div className="mt-1 text-xs text-encre/75">
++                  {plural(s.views, 'vue', 'vues')}
++                  {s.product.soldOut && ', épuisée'}
++                  {s.product.hidden && ', masquée'}
++                </div>
++              </div>
++            </li>
++          ))}
++        </ol>
++      </Section>
++
++      <Section title="Jour après jour">
++        <div className="flex items-end gap-1.5 h-32" role="img" aria-label="Visites et clics pour commander par jour">
++          {stats.daily.map((d) => (
++            <div key={d.label} className="flex-1 h-full flex items-end gap-0.5" title={`${d.label} : ${d.visits} visites, ${d.demands} clics`}>
++              <span className="flex-1 rounded-t-sm bg-encre/25" style={{ height: `${(d.visits / maxDay) * 100}%`, minHeight: d.visits ? 3 : 0 }} />
++              <span className="flex-1 rounded-t-sm bg-or" style={{ height: `${(d.demands / maxDay) * 100}%`, minHeight: d.demands ? 3 : 0 }} />
++            </div>
++          ))}
++        </div>
++        <div className="flex gap-1.5 mt-1.5">
++          {stats.daily.map((d) => (
++            <span key={d.label} className="flex-1 text-center text-xs text-encre/75">{d.short}</span>
++          ))}
++        </div>
++        <p className="mt-3 text-sm text-encre/70">Gris : visites. Or : clics pour commander.</p>
++      </Section>
++    </div>
++  );
++};
+diff --git a/src/manager/Products.tsx b/src/manager/Products.tsx
+new file mode 100644
+index 0000000..f22748b
+--- /dev/null
++++ b/src/manager/Products.tsx
+@@ -0,0 +1,221 @@
++import React, { useEffect, useMemo, useState } from 'react';
++import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
++import { useStore, nextReference } from '../lib/store';
++import { CATEGORIES } from '../lib/initialData';
++import { Stats } from '../lib/analytics';
++import { Product, ProductCategory } from '../types';
++import { PhotoPicker, Switch, btnGhost, btnPrimary, fmt, inputCls, labelCls, plural } from './ui';
++
++const MAX_PHOTOS = 3;
++const STATUS = [
++  { id: 'all', label: 'Tous' },
++  { id: 'sale', label: 'En vente' },
++  { id: 'soldout', label: 'Épuisés' },
++  { id: 'hidden', label: 'Masqués' },
++] as const;
++
++const chip = (on: boolean) =>
++  `h-11 px-4 rounded-full text-sm whitespace-nowrap cursor-pointer border transition-colors ${on ? 'bg-encre text-feuille border-encre' : 'bg-feuille border-encre/55 text-encre'}`;
++
++interface Props {
++  stats: Stats;
++  say: (msg: string, ok?: boolean) => void;
++  openId: string | null;
++  onOpened: () => void;
++}
++
++export const Products: React.FC<Props> = ({ stats, say, openId, onOpened }) => {
++  const s = useStore();
++  const { products } = s;
++  const [q, setQ] = useState('');
++  const [status, setStatus] = useState<(typeof STATUS)[number]['id']>('all');
++  const [cat, setCat] = useState('all');
++  const [editing, setEditing] = useState<'new' | string | null>(null);
++
++  useEffect(() => {
++    if (openId) {
++      setEditing(openId);
++      onOpened();
++    }
++  }, [openId, onOpened]);
++
++  const perf = useMemo(() => new Map(stats.byProduct.map((p) => [p.product.id, p])), [stats]);
++  const list = products.filter((p) => {
++    if (cat !== 'all' && p.category !== cat) return false;
++    if (status === 'sale' && (p.soldOut || p.hidden)) return false;
++    if (status === 'soldout' && !p.soldOut) return false;
++    if (status === 'hidden' && !p.hidden) return false;
++    const needle = q.trim().toLowerCase();
++    return !needle || `${p.name} ${p.reference}`.toLowerCase().includes(needle);
++  });
++
++  const toggle = async (p: Product, key: 'soldOut' | 'hidden' | 'isNew') => {
++    const err = await s.updateProduct(p.id, { [key]: !p[key] });
++    if (err) say(err, false);
++  };
++
++  if (editing !== null) {
++    return <ProductForm product={editing === 'new' ? undefined : products.find((p) => p.id === editing)} say={say} onDone={() => setEditing(null)} />;
++  }
++
++  return (
++    <div>
++      <div className="flex items-end justify-between gap-3 flex-wrap">
++        <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre">
++          {plural(products.length, 'produit', 'produits')} en boutique
++        </h1>
++        <button type="button" onClick={() => setEditing('new')} className={btnPrimary}>
++          <Plus className="w-5 h-5" /> Ajouter un produit
++        </button>
++      </div>
++
++      <div className="mt-5 relative">
++        <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-encre/75" aria-hidden="true" />
++        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher un nom ou une référence" aria-label="Chercher un produit" className={`${inputCls} pl-11`} />
++      </div>
++      <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar" role="group" aria-label="Statut">
++        {STATUS.map((o) => (
++          <button key={o.id} type="button" aria-pressed={status === o.id} onClick={() => setStatus(o.id)} className={chip(status === o.id)}>{o.label}</button>
++        ))}
++      </div>
++      <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar" role="group" aria-label="Catégorie">
++        <button type="button" aria-pressed={cat === 'all'} onClick={() => setCat('all')} className={chip(cat === 'all')}>Toutes</button>
++        {CATEGORIES.map((c) => (
++          <button key={c.id} type="button" aria-pressed={cat === c.id} onClick={() => setCat(c.id)} className={chip(cat === c.id)}>{c.fr}</button>
++        ))}
++      </div>
++
++      {list.length === 0 ? (
++        <p className="mt-8 text-encre/70">Aucun produit ne correspond. Changez le filtre ou ajoutez un produit.</p>
++      ) : (
++        <ul className="mt-4">
++          {list.map((p) => {
++            const st = perf.get(p.id);
++            const gros = p.wholesalePrice ?? 0;
++            return (
++              <li key={p.id} className={`py-4 border-t border-encre/20`}>
++                <div className="grid grid-cols-[4.5rem_1fr_auto] gap-3 items-start">
++                  <img src={p.images[0]} alt="" loading="lazy" decoding="async" className={`w-[4.5rem] h-[4.5rem] rounded-md object-cover bg-papier ${p.soldOut ? 'grayscale opacity-70' : ''} ${p.hidden ? 'opacity-50' : ''}`} />
++                  <div className="min-w-0">
++                    <div className="font-display text-lg font-semibold leading-tight text-encre line-clamp-2">{p.name}</div>
++                    <div className="text-sm text-encre/70">Réf. {p.reference}, {CATEGORIES.find((c) => c.id === p.category)?.fr}</div>
++                    <div className="mt-1 text-[15px] text-encre tabular-nums">
++                      {p.price > 0 ? `${fmt(p.price)} FCFA` : 'Prix sur demande'}
++                    </div>
++                    {gros > 0 && <div className="text-[15px] text-malachite font-medium tabular-nums">Gros : {fmt(gros)} FCFA</div>}
++                    {st && (
++                      <div className="text-sm text-encre/70">
++                        {plural(st.views, 'vue', 'vues')}, {plural(st.demands, 'demande', 'demandes')}
++                        {st.wholesale > 0 && ` (${st.wholesale} en gros)`}
++                      </div>
++                    )}
++                  </div>
++                  <div className="flex gap-2">
++                    <button type="button" onClick={() => setEditing(p.id)} className="w-11 h-11 rounded-full hover:bg-encre/10 flex items-center justify-center cursor-pointer" aria-label={`Modifier ${p.name}`}>
++                      <Pencil className="w-4 h-4" />
++                    </button>
++                    <button
++                      type="button"
++                      onClick={async () => {
++                        if (!confirm(`Supprimer « ${p.name} » ? Pour garder l'historique, masquez-le plutôt.`)) return;
++                        const err = await s.deleteProduct(p.id);
++                        if (err) say(err, false);
++                      }}
++                      className="w-11 h-11 rounded-full hover:bg-garance/10 text-garance flex items-center justify-center cursor-pointer"
++                      aria-label={`Supprimer ${p.name}`}
++                    >
++                      <Trash2 className="w-4 h-4" />
++                    </button>
++                  </div>
++                </div>
++                <div className="mt-3 flex flex-wrap gap-2">
++                  <Switch on={Boolean(p.soldOut)} onChange={() => toggle(p, 'soldOut')} label="Épuisé" />
++                  <Switch on={Boolean(p.isNew)} onChange={() => toggle(p, 'isNew')} label="Nouveau" />
++                  <Switch on={Boolean(p.hidden)} onChange={() => toggle(p, 'hidden')} label={p.hidden ? 'Masqué' : 'Masquer'} />
++                </div>
++              </li>
++            );
++          })}
++        </ul>
++      )}
++    </div>
++  );
++};
++
++const ProductForm: React.FC<{ product?: Product; say: Props['say']; onDone: () => void }> = ({ product, say, onDone }) => {
++  const s = useStore();
++  const [name, setName] = useState(product?.name ?? '');
++  const [nameEn, setNameEn] = useState(product?.nameEn ?? '');
++  const [price, setPrice] = useState(product?.price ? String(product.price) : '');
++  const [gros, setGros] = useState(product?.wholesalePrice ? String(product.wholesalePrice) : '');
++  const [category, setCategory] = useState<ProductCategory>(product?.category ?? 'colliers');
++  const [photos, setPhotos] = useState<string[]>(product?.images ?? []);
++  const [isNew, setIsNew] = useState(product ? Boolean(product.isNew) : true);
++  const [saving, setSaving] = useState(false);
++  const [errs, setErrs] = useState<{ photos?: string; gros?: string }>({});
++
++  const retail = parseInt(price, 10) || 0;
++  const wholesale = parseInt(gros, 10) || 0;
++  const discount = retail > 0 && wholesale > 0 && wholesale < retail ? Math.round((1 - wholesale / retail) * 100) : 0;
++
++  const save = async (e: React.FormEvent) => {
++    e.preventDefault();
++    if (saving) return;
++    const found: typeof errs = {};
++    if (photos.length === 0) found.photos = 'Ajoutez au moins une photo.';
++    if (wholesale > 0 && retail > 0 && wholesale >= retail) found.gros = 'Le prix de gros doit être inférieur au prix de détail.';
++    setErrs(found);
++    if (found.photos || found.gros) return;
++    const data = { name: name.trim(), nameEn: nameEn.trim() || undefined, price: retail, wholesalePrice: wholesale, category, images: photos, isNew };
++    setSaving(true);
++    const err = product ? await s.updateProduct(product.id, data) : await s.addProduct({ ...data, reference: nextReference(category, s.products) });
++    setSaving(false);
++    if (err) return say(err, false);
++    say(product ? 'Produit modifié.' : 'Produit ajouté.');
++    onDone();
++  };
++
++  return (
++    <form onSubmit={save} className="space-y-6 max-w-xl">
++      <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre">{product ? `Modifier ${product.name}` : 'Nouveau produit'}</h1>
++      <div>
++        <span className={labelCls}>Photos (1 à {MAX_PHOTOS})</span>
++        <PhotoPicker photos={photos} max={MAX_PHOTOS} onChange={(list) => { setPhotos(list); setErrs((x) => ({ ...x, photos: undefined })); }} onError={(m) => say(m, false)} />
++        {errs.photos && <p role="alert" className="mt-2 text-sm text-garance">{errs.photos}</p>}
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="p-name">Nom court</label>
++        <input id="p-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Montre Élégance" className={inputCls} />
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="p-en">Nom en anglais <span className="text-encre/75 font-normal">(facultatif)</span></label>
++        <input id="p-en" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Ex. Elegance Watch" className={inputCls} />
++      </div>
++      <div className="grid sm:grid-cols-2 gap-4">
++        <div>
++          <label className={labelCls} htmlFor="p-price">Prix de détail en FCFA</label>
++          <input id="p-price" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value.replace(/\D/g, ''))} placeholder="45000" className={inputCls} />
++          <p className="mt-1.5 text-xs text-encre/75">Vide : « Prix sur demande ».</p>
++        </div>
++        <div>
++          <label className={labelCls} htmlFor="p-gros">Prix de gros en FCFA</label>
++          <input id="p-gros" inputMode="numeric" value={gros} aria-invalid={Boolean(errs.gros)} aria-describedby="p-gros-help" onChange={(e) => { setGros(e.target.value.replace(/\D/g, '')); setErrs((x) => ({ ...x, gros: undefined })); }} placeholder="36000" className={inputCls} />
++          <p id="p-gros-help" role={errs.gros ? 'alert' : undefined} className={`mt-1.5 ${errs.gros ? 'text-sm text-garance' : 'text-xs text-encre/75'}`}>{errs.gros ?? (discount > 0 ? `${discount} % moins cher que le détail.` : 'Vide : aucun prix de gros affiché.')}</p>
++        </div>
++      </div>
++      <div>
++        <span className={labelCls}>Catégorie</span>
++        <div className="flex flex-wrap gap-2">
++          {CATEGORIES.map((c) => (
++            <button key={c.id} type="button" onClick={() => setCategory(c.id)} aria-pressed={category === c.id} className={chip(category === c.id)}>{c.fr}</button>
++          ))}
++        </div>
++      </div>
++      <Switch on={isNew} onChange={() => setIsNew((v) => !v)} label="Afficher le badge « Nouveau »" />
++      <div className="flex gap-3 pt-2">
++        <button type="button" onClick={onDone} className={btnGhost}>Annuler</button>
++        <button type="submit" disabled={saving} className={`${btnPrimary} flex-1`}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
++      </div>
++    </form>
++  );
++};
+diff --git a/src/manager/Shop.tsx b/src/manager/Shop.tsx
+new file mode 100644
+index 0000000..d13fd34
+--- /dev/null
++++ b/src/manager/Shop.tsx
+@@ -0,0 +1,93 @@
++import React, { useState } from 'react';
++import { getSettings, useStore } from '../lib/store';
++import { PhotoPicker, btnPrimary, inputCls, labelCls } from './ui';
++
++export const Shop: React.FC<{ say: (msg: string, ok?: boolean) => void }> = ({ say }) => {
++  const s = useStore();
++  const [form, setForm] = useState(() => ({ ...s.settings, newPassword: '' }));
++  const [saving, setSaving] = useState(false);
++  const [errs, setErrs] = useState<{ wa?: string; pass?: string }>({});
++  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
++  const hint = 'mt-1.5 text-xs text-encre/75';
++
++  const save = async (e: React.FormEvent) => {
++    e.preventDefault();
++    if (saving) return;
++    const digits = form.whatsappNumber.replace(/\D/g, '');
++    const { newPassword, ...rest } = form;
++    const found: typeof errs = {};
++    if (digits.length < 9) found.wa = 'Numéro trop court. Exemple : 237690000000.';
++    if (newPassword && newPassword.trim().length < 6) found.pass = '6 caractères minimum.';
++    setErrs(found);
++    if (found.wa || found.pass) return;
++    setSaving(true);
++    const err = await s.updateSettings({ ...rest, whatsappNumber: digits, wholesaleMinQty: Math.max(0, parseInt(String(rest.wholesaleMinQty), 10) || 0), ...(newPassword.trim() ? { newPassword: newPassword.trim() } : {}) });
++    setSaving(false);
++    if (err) return say(err, false);
++    setForm((f) => ({ ...f, newPassword: '' }));
++    say('Réglages enregistrés.');
++  };
++
++  return (
++    <form onSubmit={save} className="space-y-6 max-w-xl">
++      <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre">Votre boutique</h1>
++      <div>
++        <label className={labelCls} htmlFor="s-wa">Numéro WhatsApp (avec 237, sans +)</label>
++        <input id="s-wa" required inputMode="numeric" value={form.whatsappNumber} aria-invalid={Boolean(errs.wa)} aria-describedby="s-wa-help" onChange={(e) => { set('whatsappNumber')(e); setErrs((x) => ({ ...x, wa: undefined })); }} className={inputCls} placeholder="237690000000" />
++        <p id="s-wa-help" role={errs.wa ? 'alert' : undefined} className={errs.wa ? 'mt-1.5 text-sm text-garance' : hint}>{errs.wa ?? 'Toutes les commandes arrivent sur ce numéro.'}</p>
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="s-min">Quantité minimale en gros</label>
++        <input id="s-min" inputMode="numeric" value={form.wholesaleMinQty || ''} onChange={(e) => setForm((f) => ({ ...f, wholesaleMinQty: parseInt(e.target.value.replace(/\D/g, ''), 10) || 0 }))} className={inputCls} placeholder="Ex. 6" />
++        <p className={hint}>Vide : la quantité n'est pas affichée aux clientes.</p>
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="s-phone">Téléphone affiché</label>
++        <input id="s-phone" value={form.displayPhone} onChange={set('displayPhone')} className={inputCls} placeholder="+237 690 00 00 00" />
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="s-hours">Horaires</label>
++        <input id="s-hours" value={form.openingHoursFr} onChange={set('openingHoursFr')} className={inputCls} />
++        <input aria-label="Horaires en anglais" value={form.openingHoursEn} onChange={set('openingHoursEn')} className={`${inputCls} mt-2`} placeholder="Horaires en anglais (facultatif)" />
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="s-addr">Adresse</label>
++        <textarea id="s-addr" rows={2} value={form.addressFr} onChange={set('addressFr')} className={`${inputCls} h-auto py-3`} />
++        <textarea aria-label="Adresse en anglais" rows={2} value={form.addressEn} onChange={set('addressEn')} className={`${inputCls} h-auto py-3 mt-2`} placeholder="Adresse en anglais (facultatif)" />
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="s-map">Lien Google Maps</label>
++        <input id="s-map" type="url" value={form.googleMapsUrl} onChange={set('googleMapsUrl')} className={inputCls} />
++      </div>
++      <div>
++        <span className={labelCls}>Photo d'accueil</span>
++        <PhotoPicker photos={form.bannerImage ? [form.bannerImage] : []} max={1} onChange={(p) => setForm((f) => ({ ...f, bannerImage: p[0] ?? '' }))} onError={(m) => say(m, false)} />
++      </div>
++      <div>
++        <span className={labelCls}>Photo de la boutique</span>
++        <PhotoPicker photos={form.shopPhoto ? [form.shopPhoto] : []} max={1} onChange={(p) => setForm((f) => ({ ...f, shopPhoto: p[0] ?? '' }))} onError={(m) => say(m, false)} />
++      </div>
++      <div>
++        <label className={labelCls} htmlFor="s-pass">Nouveau mot de passe</label>
++        <input id="s-pass" type="password" autoComplete="new-password" value={form.newPassword} aria-invalid={Boolean(errs.pass)} aria-describedby="s-pass-help" onChange={(e) => { set('newPassword')(e); setErrs((x) => ({ ...x, pass: undefined })); }} className={inputCls} />
++        <p id="s-pass-help" role={errs.pass ? 'alert' : undefined} className={errs.pass ? 'mt-1.5 text-sm text-garance' : hint}>{errs.pass ?? "Laissez vide pour garder l'actuel."}</p>
++      </div>
++      <div className="flex items-center justify-between gap-3 pt-4 border-t border-encre/20">
++        <button
++          type="button"
++          onClick={async () => {
++            if (!confirm("Remettre les produits et réglages d'exemple ? Vos produits seront perdus.")) return;
++            const err = await s.resetToDefault();
++            if (err) return say(err, false);
++            setForm({ ...getSettings(), newPassword: '' });
++            say('Boutique réinitialisée.');
++          }}
++          className="h-11 text-sm text-garance hover:underline cursor-pointer"
++        >
++          Réinitialiser la boutique
++        </button>
++        <button type="submit" disabled={saving} className={btnPrimary}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
++      </div>
++    </form>
++  );
++};
+diff --git a/src/manager/ui.tsx b/src/manager/ui.tsx
+new file mode 100644
+index 0000000..71def76
+--- /dev/null
++++ b/src/manager/ui.tsx
+@@ -0,0 +1,88 @@
++import React, { useRef, useState } from 'react';
++import { ImagePlus, Loader2, X } from 'lucide-react';
++import { compressImage } from '../lib/image';
++
++export const inputCls =
++  'w-full h-12 px-4 text-base bg-feuille border border-encre/55 rounded-lg outline-none placeholder:text-encre/70 focus:border-encre focus:ring-2 focus:ring-encre/30 aria-[invalid=true]:border-garance';
++export const labelCls = 'block text-sm font-medium text-encre mb-1.5';
++export const btnPrimary =
++  'h-12 px-6 rounded-full bg-encre hover:bg-encre/85 disabled:opacity-60 text-feuille font-medium inline-flex items-center justify-center gap-2 cursor-pointer transition-colors';
++export const btnGhost =
++  'h-12 px-6 rounded-full border border-encre/55 hover:bg-encre/5 disabled:opacity-60 text-encre font-medium inline-flex items-center justify-center gap-2 cursor-pointer transition-colors';
++
++export const fmt = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
++export const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
++
++/** Bloc de page : un titre, un filet au-dessus, pas de carte. */
++export const Section: React.FC<{ title: string; hint?: string; children: React.ReactNode }> = ({ title, hint, children }) => (
++  <section className="pt-7 mt-8 border-t border-encre/20">
++    <h2 className="font-display text-2xl font-semibold leading-tight text-encre">{title}</h2>
++    {hint && <p className="mt-1 text-sm text-encre/75 max-w-prose">{hint}</p>}
++    <div className="mt-4">{children}</div>
++  </section>
++);
++
++export const Bar: React.FC<{ value: number; max: number; tone?: string }> = ({ value, max, tone = 'bg-or' }) => (
++  <div className="h-2.5 rounded-full bg-encre/10 overflow-hidden" role="presentation">
++    <div className={`h-full rounded-full ${tone}`} style={{ width: `${max > 0 ? Math.max(value > 0 ? 3 : 0, (value / max) * 100) : 0}%` }} />
++  </div>
++);
++
++export const Switch: React.FC<{ on: boolean; onChange: () => void; label: string }> = ({ on, onChange, label }) => (
++  <button
++    type="button"
++    role="switch"
++    aria-checked={on}
++    onClick={onChange}
++    className={`h-11 pl-2 pr-3 rounded-full text-[13px] font-medium inline-flex items-center gap-1.5 cursor-pointer border transition-colors ${
++      on ? 'bg-encre text-feuille border-encre' : 'bg-feuille text-encre/75 border-encre/55'
++    }`}
++  >
++    <span className={`w-7 h-4 rounded-full relative transition-colors ${on ? 'bg-or' : 'bg-encre/40'}`}>
++      <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${on ? 'left-3.5' : 'left-0.5'}`} />
++    </span>
++    {label}
++  </button>
++);
++
++/** Choix de photo(s) depuis la galerie du téléphone, réduites automatiquement. */
++export const PhotoPicker: React.FC<{ photos: string[]; max: number; onChange: (p: string[]) => void; onError: (m: string) => void }> = ({ photos, max, onChange, onError }) => {
++  const input = useRef<HTMLInputElement>(null);
++  const [busy, setBusy] = useState(false);
++
++  const handleFiles = async (files: FileList | null) => {
++    if (!files?.length) return;
++    setBusy(true);
++    try {
++      const added: string[] = [];
++      for (const f of Array.from(files).slice(0, max - photos.length)) added.push(await compressImage(f));
++      onChange([...photos, ...added]);
++    } catch {
++      onError('Impossible de lire cette photo. Essayez une autre image.');
++    } finally {
++      setBusy(false);
++      if (input.current) input.current.value = '';
++    }
++  };
++
++  return (
++    <div className="flex flex-wrap gap-3">
++      {photos.map((src, i) => (
++        <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden bg-papier border border-encre/15">
++          <img src={src} alt="" className="w-full h-full object-cover" />
++          {i === 0 && max > 1 && <span className="absolute bottom-0 inset-x-0 bg-encre/80 text-feuille text-[11px] text-center py-0.5">Principale</span>}
++          <button type="button" onClick={() => onChange(photos.filter((_, j) => j !== i))} className="absolute top-0 right-0 w-11 h-11 flex items-center justify-center cursor-pointer" aria-label="Retirer la photo">
++            <span className="w-7 h-7 rounded-full bg-encre/85 text-white flex items-center justify-center"><X className="w-4 h-4" /></span>
++          </button>
++        </div>
++      ))}
++      {photos.length < max && (
++        <button type="button" onClick={() => input.current?.click()} disabled={busy} className="w-24 h-24 rounded-md border-2 border-dashed border-encre/55 hover:border-or text-encre/70 flex flex-col items-center justify-center gap-1 text-xs cursor-pointer transition-colors">
++          {busy ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImagePlus className="w-6 h-6" />}
++          {busy ? 'Envoi…' : 'Ajouter'}
++        </button>
++      )}
++      <input ref={input} type="file" accept="image/*" multiple={max > 1} hidden onChange={(e) => handleFiles(e.target.files)} />
++    </div>
++  );
++};
+diff --git a/src/types/index.ts b/src/types/index.ts
+index b3141a5..5d004d8 100644
+--- a/src/types/index.ts
++++ b/src/types/index.ts
+@@ -30,3 +30,13 @@ export interface StoreSettings {
+   shopPhoto: string;
+   wholesaleMinQty: number; // quantité minimale en gros, 0 = non affichée
+ }
++
++export type EventType = 'visit' | 'view' | 'order' | 'wholesale' | 'category' | 'contact';
++
++/** Un geste d'une cliente, sans aucune donnée personnelle. */
++export interface AnalyticsEvent {
++  t: number; // horodatage (ms)
++  type: EventType;
++  pid?: string; // produit concerné
++  cat?: string; // catégorie concernée
++}
