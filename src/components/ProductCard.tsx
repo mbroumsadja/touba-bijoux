@@ -7,11 +7,10 @@ import { buildWhatsAppProductLink, formatFCFA } from '../lib/whatsapp';
 
 interface ProductCardProps {
   product: Product;
-  dark?: boolean;
   onOpen: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, dark = false, onOpen }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpen }) => {
   const { settings, lang, tr } = useStore();
   const name = lang === 'en' && product.nameEn ? product.nameEn : product.name;
   const soldOut = Boolean(product.soldOut);
@@ -22,67 +21,67 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, dark = false,
     : '';
 
   return (
-    <article className="reveal group flex flex-col">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="relative block aspect-square w-full overflow-hidden rounded-2xl bg-sand cursor-pointer"
-        aria-label={name}
-      >
-        <img
-          src={product.images[0]}
-          alt={name}
-          loading="lazy"
-          decoding="async"
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut ? 'opacity-50 grayscale' : ''}`}
-        />
-        {(soldOut || product.isNew) && (
-          <span
-            className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-              soldOut ? 'bg-onyx/90 text-ivory' : 'bg-gold text-onyx'
-            }`}
-          >
-            {soldOut ? tr('Épuisé', 'Sold out') : tr('Nouveau', 'New')}
-          </span>
+    <article className="flex flex-col">
+      <div className="relative">
+        <button type="button" onClick={onOpen} className="block w-full aspect-square overflow-hidden bg-mist cursor-pointer" aria-label={name}>
+          <img
+            src={product.images[0]}
+            alt={name}
+            loading="lazy"
+            decoding="async"
+            width={600}
+            height={600}
+            className={`w-full h-full object-cover ${soldOut ? 'opacity-55 grayscale' : ''}`}
+          />
+        </button>
+
+        {product.isNew && !soldOut && (
+          <span className="absolute top-0 left-0 bg-brass text-velvet text-xs font-semibold px-2.5 py-1">{tr('Nouveau', 'New')}</span>
         )}
-      </button>
+
+        {/* L'étiquette de prix, accrochée au bas de la photo */}
+        <span
+          className={`tag ${soldOut ? 'tag-off' : ''} pointer-events-none absolute left-0 bottom-3 font-bold tabular-nums text-[15px] sm:text-base`}
+        >
+          {soldOut ? tr('Épuisé', 'Sold out') : formatFCFA(product.price, lang)}
+        </span>
+      </div>
 
       <div className="pt-3 flex-1 flex flex-col">
-        <h3 className={`font-serif text-lg sm:text-xl font-medium leading-tight ${dark ? 'text-ivory' : 'text-onyx'}`}>{name}</h3>
-        <p className={`mt-1 text-[15px] font-medium tabular-nums ${dark ? 'text-gold' : 'text-gold-deep'}`}>{formatFCFA(product.price, lang)}</p>
-        {hasWholesale && (
-          <p className={`mt-0.5 text-[13px] tabular-nums ${dark ? 'text-ivory/70' : 'text-onyx/65'}`}>
-            {tr('Prix de gros', 'Wholesale')} : <span className="font-medium">{formatFCFA(product.wholesalePrice!, lang)}</span>
-          </p>
-        )}
+        <h3 className="font-heading font-bold text-base sm:text-lg leading-snug line-clamp-2">{name}</h3>
+        <p className="mt-0.5 text-sm text-moss">Réf. {product.reference}</p>
 
-        {soldOut ? (
-          <span className={`mt-3 h-11 rounded-full inline-flex items-center justify-center text-sm ${dark ? 'bg-ivory/10 text-ivory/50' : 'bg-onyx/5 text-onyx/40'}`}>
-            {tr('Indisponible', 'Unavailable')}
-          </span>
-        ) : (
-          <a
-            href={link}
-            onClick={() => track('order', { pid: product.id, cat: product.category })}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 h-11 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors"
-          >
-            <MessageCircle className="w-4 h-4 fill-current shrink-0" />
-            <span className="truncate">{tr('Commander', 'Order')}</span>
-          </a>
-        )}
-        {hasWholesale && !soldOut && (
-          <a
-            href={wholesaleLink}
-            onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`mt-1 h-10 inline-flex items-center justify-center text-[13px] font-medium underline underline-offset-4 decoration-gold/70 transition-colors ${dark ? 'text-ivory/80 hover:text-gold' : 'text-onyx/75 hover:text-gold-deep'}`}
-          >
-            {tr('Commander en gros', 'Order wholesale')}
-          </a>
-        )}
+        <div className="mt-auto pt-2">
+          {soldOut ? (
+            <p className="min-h-11 flex items-center text-sm text-moss">{tr('Indisponible pour le moment', 'Currently unavailable')}</p>
+          ) : (
+            <>
+              {hasWholesale && (
+                <a
+                  href={wholesaleLink}
+                  onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="min-h-11 flex items-center justify-between gap-2 text-sm text-moss hover:text-velvet underline underline-offset-4 decoration-velvet/30"
+                  aria-label={`${tr('Commander en gros', 'Order wholesale')} · ${name}`}
+                >
+                  <span>{tr('Prix de gros', 'Wholesale')}</span>
+                  <span className="font-semibold tabular-nums text-velvet">{formatFCFA(product.wholesalePrice!, lang)}</span>
+                </a>
+              )}
+              <a
+                href={link}
+                onClick={() => track('order', { pid: product.id, cat: product.category })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 h-12 rounded-sm bg-velvet hover:bg-velvet-deep text-white font-semibold inline-flex w-full items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-[18px] h-[18px] fill-current shrink-0" aria-hidden="true" />
+                {tr('Commander', 'Order')}
+              </a>
+            </>
+          )}
+        </div>
       </div>
     </article>
   );

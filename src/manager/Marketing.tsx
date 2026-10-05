@@ -75,7 +75,7 @@ const buildPublicationHtml = (products: ReturnType<typeof useStore>['products'],
             margin-bottom:20px;
           }
           .image-wrap { background:#efe7dd; }
-          .image-wrap img { width:100%; height:420px; object-fit:cover; display:block; }
+          .image-wrap img { width:100%; height:auto; max-height:380px; object-fit:cover; display:block; }
           .image-placeholder { width:100%; height:420px; display:grid; place-items:center; font-size:1.2rem; color:#6d625b; background:linear-gradient(135deg,#eee3d3,#f7f1eb); }
           .body { padding:20px 18px 12px; }
           .eyebrow { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:#6f655d; font-weight:700; }
@@ -115,14 +115,6 @@ export const Marketing: React.FC = () => {
     setSelected((current) => (current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]));
   };
 
-  const openPublication = () => {
-    if (!selectedProducts.length) return;
-    const html = buildPublicationHtml(selectedProducts, settings);
-    const popup = window.open('', '_blank', 'noopener,noreferrer,width=430,height=900');
-    if (!popup) return;
-    popup.document.write(html);
-    popup.document.close();
-  };
 
   const copyMessage = async () => {
     if (!selectedProducts.length) return;
@@ -143,6 +135,50 @@ export const Marketing: React.FC = () => {
     }
   };
 
+  const shareToWhatsAppStatus = async () => {
+    if (!selectedProducts.length) return;
+
+    // Build text summary
+    const text = selectedProducts
+      .map((product) => {
+        const url = `${websiteUrl()}`;
+        const price = product.price > 0 ? `${formatFCFA(product.price, 'fr')}` : 'Prix sur demande';
+        return `${product.name} — ${price}\n${url}`;
+      })
+      .join('\n\n');
+
+    // Try Web Share API with files (mobile browsers)
+    try {
+      if (navigator.canShare) {
+        const files: File[] = [];
+        for (const p of selectedProducts) {
+          if (p.images && p.images[0]) {
+            try {
+              const res = await fetch(p.images[0], { mode: 'cors' });
+              const blob = await res.blob();
+              const ext = blob.type.split('/')[1] || 'jpg';
+              files.push(new File([blob], `${p.id}.${ext}`, { type: blob.type }));
+            } catch (e) {
+              // ignore image fetch errors, fallback to text-only share
+            }
+          }
+        }
+
+        if (files.length && navigator.canShare({ files })) {
+          await (navigator as any).share({ files, text });
+          return;
+        }
+      }
+    } catch (e) {
+      // fallthrough to whatsapp link
+    }
+
+    // Fallback: open WhatsApp share link (will open chat). On mobile user can choose to add to Status.
+    const waText = encodeURIComponent(text + '\n\n' + (settings.shopName ? settings.shopName : ''));
+    const waUrl = `https://api.whatsapp.com/send?text=${waText}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3 flex-wrap">
@@ -150,9 +186,6 @@ export const Marketing: React.FC = () => {
           <p className="text-sm uppercase tracking-[0.2em] text-encre/60">Marketing</p>
           <h1 className="font-display text-[1.75rem] sm:text-4xl font-semibold leading-[1.15] text-encre">Créer une publication WhatsApp</h1>
         </div>
-        <button type="button" onClick={openPublication} disabled={!selectedProducts.length} className={btnPrimary}>
-          <Sparkles className="w-4 h-4" /> Prévisualiser
-        </button>
       </div>
 
       <div className="relative">
@@ -195,10 +228,10 @@ export const Marketing: React.FC = () => {
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={copyMessage} className={btnGhost}>
-                <MessageCircle className="w-4 h-4" /> {copied ? 'Copié' : 'Copier le message'}
+                <MessageCircle className="w-6 h-4" /> {copied ? 'Copié' : 'Copier le message'}
               </button>
-              <button type="button" onClick={openPublication} className={btnPrimary}>
-                <ExternalLink className="w-4 h-4" /> Ouvrir la page
+              <button type="button" onClick={shareToWhatsAppStatus} className={btnPrimary}>
+                <MessageCircle className="w-6 h-4" /> Ajouter au statut WhatsApp
               </button>
             </div>
           </div>

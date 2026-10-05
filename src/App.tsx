@@ -2,7 +2,9 @@
 
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Navbar } from './components/Navbar';
+import { MobileNav } from './components/MobileNav';
 import { Hero } from './components/Hero';
+import { Categories } from './components/Categories';
 import { NewArrivals } from './components/NewArrivals';
 import { ProductGrid } from './components/ProductGrid';
 import { ArrivalsCTA } from './components/ArrivalsCTA';
@@ -13,7 +15,6 @@ import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { ProductCategory } from './types';
 import { useStore } from './lib/store';
-import { useReveal } from './lib/useReveal';
 import { track, trackVisitOnce } from './lib/analytics';
 
 // L'espace gérant n'est téléchargé que par le gérant
@@ -36,7 +37,6 @@ export default function App() {
     if (!managerRoute) trackVisitOnce();
   }, [managerRoute]);
 
-  useReveal([products, category]);
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
@@ -82,6 +82,8 @@ export default function App() {
   );
 
   const current = modal ? products.find((p) => p.id === modal.ids[modal.index]) ?? null : null;
+  // La pièce accrochée à l'accueil : la dernière nouveauté, sinon la première pièce disponible
+  const featured = products.find((p) => !p.hidden && p.isNew && !p.soldOut) ?? products.find((p) => !p.hidden && !p.soldOut) ?? null;
 
   if (managerRoute) {
     return (
@@ -92,10 +94,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="shop min-h-screen flex flex-col">
       <Navbar onNavigate={scrollTo} activeSection={activeSection} />
+      <MobileNav onNavigate={scrollTo} activeSection={activeSection} />
       <main className="flex-1">
-        <Hero onSelectCategory={(c: ProductCategory) => showCategory(c)} onExploreCatalog={() => showCategory('all')} />
+        <Hero featured={featured} onOpenProduct={(id) => open([id], 0)} onExploreCatalog={() => showCategory('all')} />
+        <Categories onSelectCategory={(c: ProductCategory) => showCategory(c)} />
         <ProductGrid selectedCategory={category} onSelectCategory={pickCategory} onOpen={open} />
         <NewArrivals onOpen={open} onSeeAll={() => showCategory('all')} />
         <WholesaleSection />

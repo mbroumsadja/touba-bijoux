@@ -1,34 +1,36 @@
 @import "tailwindcss";
 
 @theme {
+  /* ── Espace gérant (inchangé) ─────────────────────────────── */
   --color-ivory: #FAF7F2;
   --color-sand: #F1EBDF;
   --color-onyx: #141210;
   --color-gold: #C9A24B;
   --color-gold-deep: #86651C;
-  /* or lisible sur fond clair (contraste 5:1) */
   --color-wa: #25D366;
   --color-wa-deep: #0E8A42;
-  /* vert WhatsApp avec texte blanc lisible */
-  /* Espace gérant : papier vert-gris, encre bouteille, or, signaux */
-  /* Espace gérant : même palette que la boutique */
   --color-papier: #FAF7F2;
-  /* fond de page = ivory */
   --color-feuille: #FFFFFF;
-  /* cartes et panneaux */
   --color-encre: #141210;
-  /* texte = onyx */
   --color-or: #C9A24B;
-  /* accent = gold */
   --color-or-deep: #86651C;
-  /* or lisible sur fond clair = gold-deep */
   --color-garance: #A9402E;
-  /* erreurs / alertes : à garder */
   --color-malachite: #1E6B47;
-  /* succès : à garder */
-  --font-display: 'Instrument Sans Variable', 'Instrument Sans', 'Segoe UI', sans-serif;
-  --font-serif: 'Syne Variable', 'Syne', 'Segoe UI', sans-serif;
-  --font-sans: 'Instrument Sans Variable', 'Instrument Sans', 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Jost', system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* ── Boutique : l'écrin et l'étiquette ────────────────────── */
+  --color-porcelain: #F2F4F0;      /* fond de page, froid */
+  --color-paper: #FBFAF6;          /* papier de l'étiquette */
+  --color-mist: #DDE4DE;           /* fond des photos, section nouveautés */
+  --color-velvet: #0B3B2E;         /* vert écrin : texte et grands aplats (11:1 sur porcelaine) */
+  --color-velvet-deep: #072B21;    /* pied de page */
+  --color-brass: #D9A93C;          /* laiton : accent sur le vert (5,8:1) */
+  --color-tag: #C8341E;            /* rouge étiquette : texte blanc 5,3:1 */
+  --color-moss: #4A6258;           /* texte secondaire (6:1 sur porcelaine) */
+  --font-heading: 'Syne Variable', system-ui, sans-serif;
+  --font-body: 'Instrument Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 @layer base {
@@ -59,69 +61,137 @@
   }
 }
 
-/* Ornement : petit filet doré sous les titres */
-.gold-rule {
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  background: var(--color-gold);
+/* ── Portée « boutique » : ne touche pas à l'espace gérant ───── */
+.shop {
+  background: var(--color-porcelain);
+  color: var(--color-velvet);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-/* Apparition douce au défilement (légère : opacité + 12px) */
-.reveal {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity .6s ease, transform .6s ease;
+.shop h1,
+.shop h2,
+.shop h3 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
-.reveal.is-visible {
-  opacity: 1;
-  transform: none;
+/* Anneau de focus rouge sur fond clair, laiton sur fond vert */
+.shop :focus-visible {
+  outline: 3px solid var(--color-tag);
+  outline-offset: 2px;
 }
 
-/* Reflet doré sur le bouton principal */
-.btn-gold {
-  position: relative;
-  overflow: hidden;
+.shop .on-dark :focus-visible,
+.shop .on-dark:focus-visible {
+  outline-color: var(--color-brass);
 }
 
-.btn-gold::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .4) 50%, transparent 70%);
-  transform: translateX(-100%);
-  animation: shine 5s infinite;
+/* Les boutons réagissent en 150 ms : jamais de changement instantané */
+.shop a,
+.shop button {
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease, opacity .15s ease;
 }
 
-@keyframes shine {
-
-  0%,
-  70% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
+/* ── L'étiquette de prix : pointe à gauche, trou d'attache ───── */
+.tag {
+  --notch: 13px;
+  display: inline-flex;
+  align-items: center;
+  padding: .3rem .7rem .3rem calc(var(--notch) + 1rem);
+  background: var(--color-tag);
+  color: #fff;
+  line-height: 1.2;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, var(--notch) 100%, 0 50%);
+  -webkit-mask: radial-gradient(circle 3px at calc(var(--notch) + .35rem) 50%, #0000 98%, #000);
+  mask: radial-gradient(circle 3px at calc(var(--notch) + .35rem) 50%, #0000 98%, #000);
 }
 
-/* Bouton WhatsApp flottant : légère pulsation */
-.wa-float {
-  animation: wa-pulse 2.8s infinite;
+.tag-off {
+  background: var(--color-velvet);
 }
 
-@keyframes wa-pulse {
+/* ── L'étiquette suspendue de l'accueil ──────────────────────── */
+.hang {
+  background: var(--color-paper);
+  clip-path: polygon(0 22px, 22px 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+  -webkit-mask: radial-gradient(circle 6px at 50% 19px, #0000 98%, #000);
+  mask: radial-gradient(circle 6px at 50% 19px, #0000 98%, #000);
+}
+
+/* Le clip-path coupe tout ce qui dépasse : l'anneau de focus passe à l'intérieur de l'étiquette */
+.shop .hang:focus-visible,
+.shop .on-dark .hang:focus-visible {
+  outline: 3px solid var(--color-tag);
+  outline-offset: -7px;
+}
+
+/* Le seul mouvement spontané de la page : l'étiquette oscille une fois */
+.sway {
+  transform-origin: 50% 0;
+  /* subtle continuous sway: rotate + small horizontal translation */
+  animation: sway 3.6s ease-in-out .5s infinite both;
+  will-change: transform;
+}
+
+@keyframes sway {
   0% {
-    box-shadow: 0 0 0 0 rgba(37, 211, 102, .5);
+    transform: rotate(6.5deg) translateX(-6px);
   }
 
-  70% {
-    box-shadow: 0 0 0 14px rgba(37, 211, 102, 0);
+  20% {
+    transform: rotate(-5deg) translateX(6px);
+  }
+
+  40% {
+    transform: rotate(3deg) translateX(-3px);
+  }
+
+  60% {
+    transform: rotate(-1.5deg) translateX(3px);
+  }
+
+  80% {
+    transform: rotate(.8deg) translateX(-1px);
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+    transform: rotate(0) translateX(0);
+  }
+}
+
+/* Larger sway on wide screens for a slightly more lively effect */
+@media (min-width: 1024px) {
+  .sway {
+    animation-duration: 3.2s;
+  }
+
+  @keyframes sway {
+    0% {
+      transform: rotate(8deg) translateX(-10px);
+    }
+
+    20% {
+      transform: rotate(-5.5deg) translateX(10px);
+    }
+
+    40% {
+      transform: rotate(3.2deg) translateX(-6px);
+    }
+
+    60% {
+      transform: rotate(-1.6deg) translateX(6px);
+    }
+
+    80% {
+      transform: rotate(.6deg) translateX(-2px);
+    }
+
+    100% {
+      transform: rotate(0) translateX(0);
+    }
   }
 }
 
@@ -174,15 +244,15 @@
     animation: none !important;
     transition: none !important;
   }
-
-  .reveal {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* Espace gérant : anneau de focus sombre (contraste 10:1 sur le papier) */
 .gerant :focus-visible {
   outline: 3px solid var(--color-encre);
   outline-offset: 2px;
+}
+
+/* Page de connexion (habillage boutique) : anneau rouge étiquette, comme sur le site */
+.gerant .shop :focus-visible {
+  outline-color: var(--color-tag);
 }

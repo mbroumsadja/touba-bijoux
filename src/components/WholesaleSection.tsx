@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, BadgePercent, Boxes, ImageUp, MessageCircle, Search, Sparkles, Truck } from 'lucide-react';
+import { BadgePercent, Boxes, ImageUp, MessageCircle, Truck } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { buildWholesaleWhatsAppLink } from '../lib/whatsapp';
 import { Product } from '../types';
@@ -114,109 +114,86 @@ export const WholesaleSection: React.FC = () => {
   ];
 
   return (
-    <section id="gros" className="bg-onyx text-ivory mb-3 overflow-hidden">
+    <section id="gros" className="on-dark bg-velvet text-porcelain">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        <div className="max-w-3xl">
-          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-gold font-medium">
-            {tr('Vente en gros', 'Wholesale sales')}
-          </span>
-          <h2 className="mt-3 font-serif text-3xl sm:text-5xl font-medium leading-tight">
-            {tr('Des prix adaptés aux boutiques et revendeuses.', 'Prices tailored to shops and resellers.')}
-          </h2>
-          <p className="mt-4 text-ivory/75 text-base sm:text-lg">
-            {tr('Pour les commandes de lot, l’équipe vous aide à choisir rapidement les modèles qui correspondent à votre clientèle.', 'For bulk orders, the team helps you quickly choose the models that match your customers.')}
-          </p>
-        </div>
+        <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold max-w-[18ch]">
+          {tr('Des prix adaptés aux boutiques et revendeuses', 'Prices tailored to shops and resellers')}
+        </h2>
+        <p className="mt-5 text-lg text-porcelain/85 max-w-[52ch]">
+          {tr('Pour les commandes de lot, l’équipe vous aide à choisir rapidement les modèles qui correspondent à votre clientèle.', 'For bulk orders, the team helps you quickly choose the models that match your customers.')}
+        </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <ul className="mt-12 grid gap-x-8 gap-y-8 sm:grid-cols-3">
           {wholesaleInfo.map(({ icon: Icon, title, text }) => (
-            <div key={title} className="rounded-2xl border border-ivory/10 bg-ivory/5 p-5">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
-                <Icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-serif text-xl leading-snug text-ivory">{title}</h3>
-              <p className="mt-2 text-sm text-ivory/70 leading-relaxed">{text}</p>
-            </div>
+            <li key={title} className="border-t border-porcelain/30 pt-5">
+              <Icon className="h-6 w-6 text-brass" aria-hidden="true" />
+              <h3 className="mt-4 font-heading font-bold text-xl leading-snug">{title}</h3>
+              <p className="mt-2 text-porcelain/80">{text}</p>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        <div className="mt-6 flex justify-start">
-          <a
-            href={wholesaleLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-onyx transition-colors hover:bg-ivory"
-          >
-            <MessageCircle className="h-4 w-4 fill-current" />
-            {tr('Passer une commande en gros', 'Place a wholesale order')}
-          </a>
-        </div>
+        <a
+          href={wholesaleLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-10 inline-flex h-12 items-center gap-2 rounded-sm bg-brass px-7 font-semibold text-velvet hover:bg-porcelain"
+        >
+          <MessageCircle className="h-[18px] w-[18px] fill-current" aria-hidden="true" />
+          {tr('Passer une commande en gros', 'Place a wholesale order')}
+        </a>
 
-        <div className="mt-12 max-w-3xl">
-          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-gold font-medium">
-            {tr('Recherche par image', 'Image search')}
-          </span>
-          <h2 className="mt-3 font-serif text-3xl sm:text-5xl font-medium leading-tight">
-            {tr('Trouvez un produit à partir d’une photo.', 'Find a product from a photo.')}
-          </h2>
-          <p className="mt-4 text-ivory/75 text-base sm:text-lg">
-            {tr('Téléversez une image et le catalogue cherchera le produit le plus proche.', 'Upload an image and the catalog will look for the closest matching product.')}
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr] items-start">
-          <label className="group block cursor-pointer rounded-3xl border border-dashed border-ivory/20 bg-ivory/5 p-5 sm:p-7 transition-colors hover:border-gold/60 hover:bg-ivory/8">
-            <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
-            <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-ivory/10 bg-onyx/40 px-6 text-center">
-              {preview ? (
-                <img src={preview} alt="Aperçu de la recherche" className="h-52 w-full rounded-xl object-cover" />
-              ) : (
-                <>
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
-                    <ImageUp className="h-6 w-6" />
-                  </span>
-                  <p className="mt-5 text-lg font-medium text-ivory">{tr('Choisir une image', 'Choose an image')}</p>
-                  <p className="mt-2 text-sm text-ivory/65">{tr('PNG, JPG ou WEBP', 'PNG, JPG or WEBP')}</p>
-                </>
-              )}
-              {fileName && <p className="mt-4 text-xs text-ivory/70">{fileName}</p>}
-            </div>
-          </label>
-
-          <div className="rounded-3xl border border-ivory/10 bg-ivory/5 p-5 sm:p-6">
-            <div className="flex items-center gap-2 text-gold">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-[11px] uppercase tracking-[0.2em]">{tr('Résultat', 'Result')}</span>
-            </div>
-
-            {loading ? (
-              <div className="mt-5 text-sm text-ivory/70">{tr('Recherche du produit…', 'Searching the product…')}</div>
-            ) : match ? (
-              <div className="mt-4 space-y-4">
-                <div className="rounded-2xl bg-onyx/40 p-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-ivory/55">{tr('Produit proche', 'Closest product')}</p>
-                  <h3 className="mt-2 font-serif text-2xl text-ivory">{productName}</h3>
-                  <p className="mt-1 text-sm text-ivory/70">{match.reference}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={openCatalog}
-                  className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-onyx transition-colors hover:bg-ivory"
-                >
-                  {tr('Voir dans le catalogue', 'View in catalog')} <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="mt-5 flex min-h-[140px] items-center text-sm text-ivory/70">
-                {error || tr('Aucune recherche effectuée pour le moment.', 'No search has been made yet.')}
-              </div>
-            )}
+        <div className="mt-20 sm:mt-28 grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16 items-start">
+          <div>
+            <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold max-w-[16ch]">
+              {tr('Retrouvez une pièce à partir d’une photo', 'Find a piece from a photo')}
+            </h2>
+            <p className="mt-5 text-lg text-porcelain/85 max-w-[44ch]">
+              {tr('Ajoutez une image : le catalogue cherche la pièce la plus proche.', 'Add an image and the catalog looks for the closest piece.')}
+            </p>
           </div>
-        </div>
 
-        <div className="mt-8 flex items-center gap-2 text-sm text-ivory/60">
-          <Search className="h-4 w-4" />
-          {tr('Recherche visuelle du catalogue', 'Visual catalog search')}
+          <div className="grid gap-4">
+            <label className="block cursor-pointer border-2 border-dashed border-porcelain/35 hover:border-brass focus-within:border-brass p-3 sm:p-4">
+              <input type="file" accept="image/*" onChange={onUpload} className="sr-only" />
+              <span className="flex min-h-[200px] flex-col items-center justify-center bg-velvet-deep px-6 text-center">
+                {preview ? (
+                  <img src={preview} alt="Aperçu de la recherche" className="h-52 w-full object-cover" />
+                ) : (
+                  <>
+                    <ImageUp className="h-8 w-8 text-brass" aria-hidden="true" />
+                    <span className="mt-4 block text-lg font-semibold">{tr('Choisir une image', 'Choose an image')}</span>
+                    <span className="mt-1 block text-sm text-porcelain/75">{tr('PNG, JPG ou WEBP', 'PNG, JPG or WEBP')}</span>
+                  </>
+                )}
+                {fileName && <span className="mt-3 block text-sm text-porcelain/80">{fileName}</span>}
+              </span>
+            </label>
+
+            <div className="border border-porcelain/25 p-5" aria-live="polite">
+              <p className="font-heading font-bold">{tr('Résultat', 'Result')}</p>
+
+              {loading ? (
+                <p className="mt-3 text-porcelain/85">{tr('Recherche de la pièce…', 'Searching for the piece…')}</p>
+              ) : match ? (
+                <div className="mt-3">
+                  <p className="font-heading text-2xl font-bold leading-tight">{productName}</p>
+                  <p className="mt-1 text-sm text-porcelain/80">Réf. {match.reference}</p>
+                  <button
+                    type="button"
+                    onClick={openCatalog}
+                    className="mt-5 inline-flex h-12 items-center rounded-sm bg-brass px-6 font-semibold text-velvet hover:bg-porcelain cursor-pointer"
+                  >
+                    {tr('Voir dans le catalogue', 'View in catalog')}
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-3 text-porcelain/85">
+                  {error || tr('Ajoutez une photo pour lancer la recherche.', 'Add a photo to start the search.')}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>

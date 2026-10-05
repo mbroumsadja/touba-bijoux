@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { ProductCard } from './ProductCard';
 
@@ -15,20 +14,23 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({ onOpen, onSeeAll }) =>
   const ids = items.map((p) => p.id);
 
   return (
-    <section id="arrivages" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h2 className="font-serif text-3xl sm:text-4xl font-medium">{tr('Nouveautés', 'New arrivals')}</h2>
-          <span className="gold-rule mt-3" />
+    <section id="arrivages" className="bg-mist border-t-4 border-brass">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+          <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold">{tr('Nouveautés', 'New arrivals')}</h2>
+          <button
+            type="button"
+            onClick={onSeeAll}
+            className="min-h-11 font-semibold underline underline-offset-4 decoration-2 decoration-tag hover:text-tag cursor-pointer"
+          >
+            {tr('Voir tout le catalogue', 'See the whole catalog')}
+          </button>
         </div>
-        <button type="button" onClick={onSeeAll} className="text-sm font-medium text-gold-deep hover:text-onyx inline-flex items-center gap-1.5 cursor-pointer transition-colors">
-          {tr('Tout voir', 'View all')} <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6">
-        {items.map((p, i) => (
-          <ProductCard key={p.id} product={p} onOpen={() => onOpen(ids, i)} />
-        ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-10 sm:gap-x-6">
+          {items.map((p, i) => (
+            <ProductCard key={p.id} product={p} onOpen={() => onOpen(ids, i)} />
+          ))}
+        </div>
       </div>
     </section>
   );
