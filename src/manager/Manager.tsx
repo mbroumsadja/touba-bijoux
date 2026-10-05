@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Gem, LayoutGrid, Lock, LogOut, Megaphone, Store as StoreIcon } from 'lucide-react';
+import { ArrowLeft, Check, Eye, EyeOff, Gem, LayoutGrid, LogOut, Megaphone, Store as StoreIcon } from 'lucide-react';
 import { deleteAllEvents, fetchEvents, useStore } from '../lib/store';
-import { CATEGORIES } from '../lib/initialData';
+import { CATEGORIES, IMG } from '../lib/initialData';
 import { Action, computeStats } from '../lib/analytics';
 import { AnalyticsEvent } from '../types';
 import { Marketing } from './Marketing';
 import { Overview } from './Overview';
 import { Products } from './Products';
 import { Shop } from './Shop';
-import { btnPrimary, inputCls } from './ui';
 
 type Tab = 'produits' | 'marketing' | 'boutique';
 const TABS = [
@@ -38,29 +37,69 @@ function useDisplayFont() {
 const Login: React.FC = () => {
   const s = useStore();
   const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   return (
-    <main className="min-h-full flex items-center justify-center p-6">
-      <form
-        className="w-full max-w-sm flex items-center justify-center flex-col gap-3 bg-ivory/5 border border-ivory/10 rounded-2xl p-6 sm:p-8"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setBusy(true);
-          const err = await s.loginAdmin(password);
-          setBusy(false);
-          if (err) setError(err);
-        }}
-      >
-        <span className="w-12 h-12 rounded-full bg-encre text-feuille flex items-center justify-center"><Lock className="w-5 h-5" /></span>
-        <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-encre">Espace gérant</h1>
-        <p className="mt-2 text-encre/75">Suivez les produits que vos clientes demandent, mettez à jour vos prix et préparez vos statuts.</p>
-        <label htmlFor="g-pass" className="sr-only">Mot de passe</label>
-        <input id="g-pass" type="password" autoFocus autoComplete="current-password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputCls} mt-6`} />
-        {error && <p role="alert" className="mt-3 text-sm text-garance">{error}</p>}
-        <button type="submit" disabled={busy || !password} className={`${btnPrimary} w-full mt-4`}>{busy ? 'Connexion…' : 'Se connecter'}</button>
-        <a href="#" className="mt-4 inline-flex h-11 items-center text-sm underline underline-offset-4 decoration-or">Retour à la boutique</a>
-      </form>
+    <main className="shop min-h-full grid lg:grid-cols-2">
+      {/* Photo de la boutique, sur grand écran seulement */}
+      <div className="on-dark relative hidden lg:block bg-velvet-deep">
+        <img src={s.settings.bannerImage || IMG.hero} alt="" className="absolute inset-0 w-full h-full object-cover object-[62%_50%]" />
+        <p className="absolute inset-x-0 bottom-0 bg-velvet text-porcelain px-10 py-6 font-heading text-3xl font-extrabold tracking-tight">{s.settings.shopName}</p>
+      </div>
+
+      <div className="flex items-center px-5 py-10 sm:px-12 lg:px-16">
+        <form
+          className="w-full max-w-md mx-auto flex flex-col"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            const err = await s.loginAdmin(password);
+            setBusy(false);
+            if (err) setError(err);
+          }}
+        >
+          <p className="lg:hidden mb-10 font-heading text-xl font-extrabold tracking-tight">{s.settings.shopName}</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold">Espace gérant</h1>
+          <p className="mt-4 text-moss max-w-[40ch]">Suivez les produits que vos clientes demandent, mettez à jour vos prix et préparez vos statuts.</p>
+
+          <label htmlFor="g-pass" className="mt-9 block text-sm font-semibold mb-1.5">Mot de passe</label>
+          <div className="relative">
+            <input
+              id="g-pass"
+              type={show ? 'text' : 'password'}
+              autoFocus
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); if (error) setError(''); }}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? 'g-pass-err' : undefined}
+              className="w-full h-12 rounded-sm border border-velvet/55 bg-paper pl-4 pr-14 text-base text-velvet outline-none focus:border-tag focus:ring-1 focus:ring-tag aria-[invalid=true]:border-tag aria-[invalid=true]:border-2"
+            />
+            <button
+              type="button"
+              onClick={() => setShow((v) => !v)}
+              aria-pressed={show}
+              aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              className="absolute right-0.5 top-1/2 -translate-y-1/2 w-11 h-11 text-moss hover:text-velvet flex items-center justify-center cursor-pointer"
+            >
+              {show ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
+            </button>
+          </div>
+          {error && <p id="g-pass-err" role="alert" className="mt-2 text-sm font-semibold text-tag">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={busy || !password}
+            className="mt-6 h-12 w-full rounded-sm bg-velvet hover:bg-velvet-deep disabled:opacity-50 disabled:hover:bg-velvet text-white font-semibold cursor-pointer disabled:cursor-not-allowed"
+          >
+            {busy ? 'Connexion…' : 'Se connecter'}
+          </button>
+          <a href="#" className="mt-3 self-start inline-flex h-11 items-center gap-1.5 text-sm font-semibold text-moss hover:text-velvet">
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Retour à la boutique
+          </a>
+        </form>
+      </div>
     </main>
   );
 };

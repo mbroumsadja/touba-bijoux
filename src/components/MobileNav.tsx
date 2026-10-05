@@ -7,6 +7,7 @@ interface MobileNavProps {
   activeSection: string;
 }
 
+/** Barre de navigation fixe en bas de l'écran, sur téléphone uniquement (5 entrées au maximum). */
 export const MobileNav: React.FC<MobileNavProps> = ({ onNavigate, activeSection }) => {
   const { products, tr } = useStore();
   const hasNew = products.some((p) => !p.hidden && p.isNew && !p.soldOut);

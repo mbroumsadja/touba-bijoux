@@ -7,6 +7,7 @@ interface CategoriesProps {
   onSelectCategory: (category: ProductCategory) => void;
 }
 
+/** Les cinq univers, en grande typographie, avec le nombre de pièces réellement en vitrine. */
 export const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
   const { products, lang, tr } = useStore();
   const count = (id: string) => products.filter((p) => !p.hidden && p.category === id).length;

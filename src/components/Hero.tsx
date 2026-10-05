@@ -8,7 +8,7 @@ import { Product } from '../types';
 
 interface HeroProps {
   featured: Product | null;
-  onOpenProduct: (productId: string) => void;
+  onOpenProduct: (id: string) => void;
   onExploreCatalog: () => void;
 }
 
@@ -16,18 +16,18 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
   const { settings, lang, tr } = useStore();
   const whatsapp = buildGeneralWhatsAppLink({ phone: settings.whatsappNumber, shopName: settings.shopName, lang });
 
-  const featuredName = lang === 'en' && featured?.nameEn ? featured.nameEn : featured?.name ?? '';
-  const featuredWholesale = Boolean(featured && (featured.wholesalePrice ?? 0) > 0);
-
   const perks = [
-    { title: tr('Commande rapide', 'Fast order'), text: tr('Message sur WhatsApp, sans perdre de temps.', 'Message on WhatsApp, without wasting time.') },
-    { title: tr('Paiement simple', 'Simple payment'), text: tr('Orange Money, MTN MoMo, paiement à la livraison.', 'Orange Money, MTN MoMo, cash on delivery.') },
-    { title: tr('Livraison partout', 'Delivery everywhere'), text: tr('Dans tout le Cameroun.', 'Across Cameroon.') },
-    { title: tr('Prix de gros', 'Wholesale pricing'), text: tr('Des tarifs clairs pour les commandes de masse.', 'Clear pricing for bulk orders.') },
+    { title: tr('Commande sur WhatsApp', 'Order on WhatsApp'), text: tr('Un message suffit, sans compte à créer.', 'One message is enough. No account needed.') },
+    { title: tr('Paiement', 'Payment'), text: tr('À la livraison, Orange Money ou MTN MoMo.', 'Cash on delivery, Orange Money or MTN MoMo.') },
+    { title: tr('Livraison', 'Delivery'), text: tr('Dans tout le Cameroun.', 'Across Cameroon.') },
+    { title: tr('Prix de gros', 'Wholesale prices'), text: tr('Affiché sur chaque pièce.', 'Shown on every piece.') },
   ];
 
+  const featuredName = featured ? (lang === 'en' && featured.nameEn ? featured.nameEn : featured.name) : '';
+  const featuredWholesale = featured && (featured.wholesalePrice ?? 0) > 0;
+
   return (
-    <section id="accueil" className="shop">
+    <section id="accueil">
       <div className="on-dark bg-velvet text-porcelain overflow-x-clip">
         <div className="grid lg:grid-cols-2">
           <div className="px-4 sm:px-6 py-14 sm:py-20 lg:py-28 lg:pl-[max(2rem,calc((100vw-80rem)/2+2rem))] lg:pr-14 flex flex-col justify-center">
@@ -41,7 +41,11 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
               )}
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <button type="button" onClick={onExploreCatalog} className="h-12 px-7 rounded-sm bg-brass hover:bg-porcelain text-velvet font-semibold cursor-pointer">
+              <button
+                type="button"
+                onClick={onExploreCatalog}
+                className="h-12 px-7 rounded-sm bg-brass hover:bg-porcelain text-velvet font-semibold cursor-pointer"
+              >
                 {tr('Voir le catalogue', 'Browse the catalog')}
               </button>
               <a
@@ -58,10 +62,17 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
           </div>
 
           <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-auto lg:min-h-[640px] bg-velvet-deep">
-            <img src={settings.bannerImage || IMG.hero} alt="" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover object-[62%_50%]" />
+            <img
+              src={settings.bannerImage || IMG.hero}
+              alt=""
+              fetchPriority="high"
+              className="absolute inset-0 w-full h-full object-cover object-[62%_50%]"
+            />
+
             {featured && (
               <div className="absolute z-10 top-0 right-5 sm:right-10 lg:right-auto lg:left-10 xl:left-14">
                 <div className="sway">
+                  {/* Ficelle et clou : l'étiquette est accrochée au bord de la photo */}
                   <span aria-hidden="true" className="mx-auto block w-px h-6 bg-brass" />
                   <button
                     type="button"
@@ -90,6 +101,7 @@ export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCa
         </div>
       </div>
 
+      {/* Ce que la cliente doit savoir avant de commander */}
       <ul className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 grid grid-cols-2 lg:grid-cols-4 gap-y-7 gap-x-6">
         {perks.map((p) => (
           <li key={p.title} className="border-l-2 border-brass pl-4">
