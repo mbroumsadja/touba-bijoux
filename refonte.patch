@@ -1,0 +1,2054 @@
+diff --git a/package-lock.json b/package-lock.json
+index e688ea0..a50c92e 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -8,6 +8,8 @@
+       "name": "touba-bijoux",
+       "version": "2.0.0",
+       "dependencies": {
++        "@fontsource-variable/instrument-sans": "^5.3.0",
++        "@fontsource-variable/syne": "^5.3.0",
+         "jsonwebtoken": "^9.0.3",
+         "lucide-react": "^0.546.0",
+         "mongodb": "^7.7.0",
+@@ -48,6 +50,24 @@
+         "tslib": "^2.4.0"
+       }
+     },
++    "node_modules/@fontsource-variable/instrument-sans": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource-variable/instrument-sans/-/instrument-sans-5.3.0.tgz",
++      "integrity": "sha512-u4gKbDBTNFGkg997tfQn3eHOhHuquWUFTRT/rwzuKtrxX5P2ekfs2x+LgBPP4P32+cC+vUwF1Cr+IdRoPQbrGw==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
++    "node_modules/@fontsource-variable/syne": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource-variable/syne/-/syne-5.3.0.tgz",
++      "integrity": "sha512-GUNH65fUfWHQcX7bO0BGgScE465gawpTId45aDfhHcVj/upbb6b+2d++5keKP128vK8+LtE4dvLkKTsxoh7TwA==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
+     "node_modules/@img/colour": {
+       "version": "1.1.0",
+       "resolved": "https://registry.npmjs.org/@img/colour/-/colour-1.1.0.tgz",
+@@ -160,9 +180,6 @@
+       "cpu": [
+         "arm"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -179,9 +196,6 @@
+       "cpu": [
+         "arm64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -198,9 +212,6 @@
+       "cpu": [
+         "ppc64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -217,9 +228,6 @@
+       "cpu": [
+         "riscv64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -236,9 +244,6 @@
+       "cpu": [
+         "s390x"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -255,9 +260,6 @@
+       "cpu": [
+         "x64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -274,9 +276,6 @@
+       "cpu": [
+         "arm64"
+       ],
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -293,9 +292,6 @@
+       "cpu": [
+         "x64"
+       ],
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "LGPL-3.0-or-later",
+       "optional": true,
+       "os": [
+@@ -312,9 +308,6 @@
+       "cpu": [
+         "arm"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -337,9 +330,6 @@
+       "cpu": [
+         "arm64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -362,9 +352,6 @@
+       "cpu": [
+         "ppc64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -387,9 +374,6 @@
+       "cpu": [
+         "riscv64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -412,9 +396,6 @@
+       "cpu": [
+         "s390x"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -437,9 +418,6 @@
+       "cpu": [
+         "x64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -462,9 +440,6 @@
+       "cpu": [
+         "arm64"
+       ],
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -487,9 +462,6 @@
+       "cpu": [
+         "x64"
+       ],
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "Apache-2.0",
+       "optional": true,
+       "os": [
+@@ -701,9 +673,6 @@
+       "cpu": [
+         "arm64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -720,9 +689,6 @@
+       "cpu": [
+         "arm64"
+       ],
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -739,9 +705,6 @@
+       "cpu": [
+         "x64"
+       ],
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -758,9 +721,6 @@
+       "cpu": [
+         "x64"
+       ],
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -944,9 +904,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -964,9 +921,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -984,9 +938,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1004,9 +955,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1453,9 +1401,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MPL-2.0",
+       "optional": true,
+       "os": [
+@@ -1477,9 +1422,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MPL-2.0",
+       "optional": true,
+       "os": [
+@@ -1501,9 +1443,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MPL-2.0",
+       "optional": true,
+       "os": [
+@@ -1525,9 +1464,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MPL-2.0",
+       "optional": true,
+       "os": [
+diff --git a/package.json b/package.json
+index bccacbd..946ae3a 100644
+--- a/package.json
++++ b/package.json
+@@ -9,6 +9,8 @@
+     "lint": "tsc --noEmit"
+   },
+   "dependencies": {
++    "@fontsource-variable/instrument-sans": "^5.3.0",
++    "@fontsource-variable/syne": "^5.3.0",
+     "jsonwebtoken": "^9.0.3",
+     "lucide-react": "^0.546.0",
+     "mongodb": "^7.7.0",
+diff --git a/src/App.tsx b/src/App.tsx
+index 51ec377..e7ea7a4 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -2,7 +2,9 @@
+ 
+ import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+ import { Navbar } from './components/Navbar';
++import { MobileNav } from './components/MobileNav';
+ import { Hero } from './components/Hero';
++import { Categories } from './components/Categories';
+ import { NewArrivals } from './components/NewArrivals';
+ import { ProductGrid } from './components/ProductGrid';
+ import { ArrivalsCTA } from './components/ArrivalsCTA';
+@@ -13,7 +15,6 @@ import { Footer } from './components/Footer';
+ import { FloatingWhatsApp } from './components/FloatingWhatsApp';
+ import { ProductCategory } from './types';
+ import { useStore } from './lib/store';
+-import { useReveal } from './lib/useReveal';
+ import { track, trackVisitOnce } from './lib/analytics';
+ 
+ // L'espace gérant n'est téléchargé que par le gérant
+@@ -36,7 +37,6 @@ export default function App() {
+     if (!managerRoute) trackVisitOnce();
+   }, [managerRoute]);
+ 
+-  useReveal([products, category]);
+   useEffect(() => {
+     document.documentElement.lang = lang;
+   }, [lang]);
+@@ -83,6 +83,10 @@ export default function App() {
+ 
+   const current = modal ? products.find((p) => p.id === modal.ids[modal.index]) ?? null : null;
+ 
++  // La pièce accrochée à l'accueil : la dernière nouveauté, sinon la première pièce disponible
++  const featured =
++    products.find((p) => !p.hidden && p.isNew && !p.soldOut) ?? products.find((p) => !p.hidden && !p.soldOut) ?? null;
++
+   if (managerRoute) {
+     return (
+       <Suspense fallback={<div className="fixed inset-0 bg-papier" />}>
+@@ -92,10 +96,12 @@ export default function App() {
+   }
+ 
+   return (
+-    <div className="min-h-screen flex flex-col">
++    <div className="shop min-h-screen flex flex-col">
+       <Navbar onNavigate={scrollTo} activeSection={activeSection} />
++      <MobileNav onNavigate={scrollTo} activeSection={activeSection} />
+       <main className="flex-1">
+-        <Hero onSelectCategory={(c: ProductCategory) => showCategory(c)} onExploreCatalog={() => showCategory('all')} />
++        <Hero featured={featured} onOpenProduct={(id) => open([id], 0)} onExploreCatalog={() => showCategory('all')} />
++        <Categories onSelectCategory={(c: ProductCategory) => showCategory(c)} />
+         <ProductGrid selectedCategory={category} onSelectCategory={pickCategory} onOpen={open} />
+         <NewArrivals onOpen={open} onSeeAll={() => showCategory('all')} />
+         <WholesaleSection />
+diff --git a/src/app/globals.css b/src/app/globals.css
+index 1511d04..ffc1658 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -1,34 +1,36 @@
+ @import "tailwindcss";
+ 
+ @theme {
++  /* ── Espace gérant (inchangé) ─────────────────────────────── */
+   --color-ivory: #FAF7F2;
+   --color-sand: #F1EBDF;
+   --color-onyx: #141210;
+   --color-gold: #C9A24B;
+   --color-gold-deep: #86651C;
+-  /* or lisible sur fond clair (contraste 5:1) */
+   --color-wa: #25D366;
+   --color-wa-deep: #0E8A42;
+-  /* vert WhatsApp avec texte blanc lisible */
+-  /* Espace gérant : papier vert-gris, encre bouteille, or, signaux */
+-  /* Espace gérant : même palette que la boutique */
+   --color-papier: #FAF7F2;
+-  /* fond de page = ivory */
+   --color-feuille: #FFFFFF;
+-  /* cartes et panneaux */
+   --color-encre: #141210;
+-  /* texte = onyx */
+   --color-or: #C9A24B;
+-  /* accent = gold */
+   --color-or-deep: #86651C;
+-  /* or lisible sur fond clair = gold-deep */
+   --color-garance: #A9402E;
+-  /* erreurs / alertes : à garder */
+   --color-malachite: #1E6B47;
+-  /* succès : à garder */
+   --font-display: 'Bricolage Grotesque', 'Jost', system-ui, sans-serif;
+   --font-serif: 'Cormorant Garamond', Georgia, serif;
+   --font-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
++
++  /* ── Boutique : l'écrin et l'étiquette ────────────────────── */
++  --color-porcelain: #F2F4F0;      /* fond de page, froid */
++  --color-paper: #FBFAF6;          /* papier de l'étiquette */
++  --color-mist: #DDE4DE;           /* fond des photos, section nouveautés */
++  --color-velvet: #0B3B2E;         /* vert écrin : texte et grands aplats (11:1 sur porcelaine) */
++  --color-velvet-deep: #072B21;    /* pied de page */
++  --color-brass: #D9A93C;          /* laiton : accent sur le vert (5,8:1) */
++  --color-tag: #C8341E;            /* rouge étiquette : texte blanc 5,3:1 */
++  --color-moss: #4A6258;           /* texte secondaire (6:1 sur porcelaine) */
++  --font-heading: 'Syne Variable', system-ui, sans-serif;
++  --font-body: 'Instrument Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+ }
+ 
+ @layer base {
+@@ -59,69 +61,102 @@
+   }
+ }
+ 
+-/* Ornement : petit filet doré sous les titres */
+-.gold-rule {
+-  display: block;
+-  width: 2.5rem;
+-  height: 1px;
+-  background: var(--color-gold);
++/* ── Portée « boutique » : ne touche pas à l'espace gérant ───── */
++.shop {
++  background: var(--color-porcelain);
++  color: var(--color-velvet);
++  font-family: var(--font-body);
++  font-size: 1rem;
++  line-height: 1.5;
+ }
+ 
+-/* Apparition douce au défilement (légère : opacité + 12px) */
+-.reveal {
+-  opacity: 0;
+-  transform: translateY(12px);
+-  transition: opacity .6s ease, transform .6s ease;
++.shop h1,
++.shop h2,
++.shop h3 {
++  font-family: var(--font-heading);
++  letter-spacing: -0.02em;
++  line-height: 1.05;
+ }
+ 
+-.reveal.is-visible {
+-  opacity: 1;
+-  transform: none;
++/* Anneau de focus rouge sur fond clair, laiton sur fond vert */
++.shop :focus-visible {
++  outline: 3px solid var(--color-tag);
++  outline-offset: 2px;
+ }
+ 
+-/* Reflet doré sur le bouton principal */
+-.btn-gold {
+-  position: relative;
+-  overflow: hidden;
++.shop .on-dark :focus-visible,
++.shop .on-dark:focus-visible {
++  outline-color: var(--color-brass);
+ }
+ 
+-.btn-gold::after {
+-  content: "";
+-  position: absolute;
+-  inset: 0;
+-  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .4) 50%, transparent 70%);
+-  transform: translateX(-100%);
+-  animation: shine 5s infinite;
++/* Les boutons réagissent en 150 ms : jamais de changement instantané */
++.shop a,
++.shop button {
++  transition: color .15s ease, background-color .15s ease, border-color .15s ease, opacity .15s ease;
+ }
+ 
+-@keyframes shine {
++/* ── L'étiquette de prix : pointe à gauche, trou d'attache ───── */
++.tag {
++  --notch: 13px;
++  display: inline-flex;
++  align-items: center;
++  padding: .3rem .7rem .3rem calc(var(--notch) + 1rem);
++  background: var(--color-tag);
++  color: #fff;
++  line-height: 1.2;
++  clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, var(--notch) 100%, 0 50%);
++  -webkit-mask: radial-gradient(circle 3px at calc(var(--notch) + .35rem) 50%, #0000 98%, #000);
++  mask: radial-gradient(circle 3px at calc(var(--notch) + .35rem) 50%, #0000 98%, #000);
++}
+ 
+-  0%,
+-  70% {
+-    transform: translateX(-100%);
+-  }
++.tag-off {
++  background: var(--color-velvet);
++}
+ 
+-  100% {
+-    transform: translateX(100%);
+-  }
++/* ── L'étiquette suspendue de l'accueil ──────────────────────── */
++.hang {
++  background: var(--color-paper);
++  clip-path: polygon(0 22px, 22px 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
++  -webkit-mask: radial-gradient(circle 6px at 50% 19px, #0000 98%, #000);
++  mask: radial-gradient(circle 6px at 50% 19px, #0000 98%, #000);
++}
++
++/* Le clip-path coupe tout ce qui dépasse : l'anneau de focus passe à l'intérieur de l'étiquette */
++.shop .hang:focus-visible,
++.shop .on-dark .hang:focus-visible {
++  outline: 3px solid var(--color-tag);
++  outline-offset: -7px;
+ }
+ 
+-/* Bouton WhatsApp flottant : légère pulsation */
+-.wa-float {
+-  animation: wa-pulse 2.8s infinite;
++/* Le seul mouvement spontané de la page : l'étiquette oscille une fois */
++.sway {
++  transform-origin: 50% 0;
++  animation: sway 2.6s cubic-bezier(.3, .1, .3, 1) .5s both;
+ }
+ 
+-@keyframes wa-pulse {
++@keyframes sway {
+   0% {
+-    box-shadow: 0 0 0 0 rgba(37, 211, 102, .5);
++    transform: rotate(8deg);
++  }
++
++  22% {
++    transform: rotate(-5.5deg);
+   }
+ 
+-  70% {
+-    box-shadow: 0 0 0 14px rgba(37, 211, 102, 0);
++  44% {
++    transform: rotate(3.2deg);
++  }
++
++  64% {
++    transform: rotate(-1.6deg);
++  }
++
++  82% {
++    transform: rotate(.6deg);
+   }
+ 
+   100% {
+-    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
++    transform: rotate(0);
+   }
+ }
+ 
+@@ -174,15 +209,15 @@
+     animation: none !important;
+     transition: none !important;
+   }
+-
+-  .reveal {
+-    opacity: 1;
+-    transform: none;
+-  }
+ }
+ 
+ /* Espace gérant : anneau de focus sombre (contraste 10:1 sur le papier) */
+ .gerant :focus-visible {
+   outline: 3px solid var(--color-encre);
+   outline-offset: 2px;
+-}
+\ No newline at end of file
++}
++
++/* Page de connexion (habillage boutique) : anneau rouge étiquette, comme sur le site */
++.gerant .shop :focus-visible {
++  outline-color: var(--color-tag);
++}
+diff --git a/src/app/layout.tsx b/src/app/layout.tsx
+index acb006b..051b247 100644
+--- a/src/app/layout.tsx
++++ b/src/app/layout.tsx
+@@ -1,4 +1,7 @@
+ import type { Metadata, Viewport } from 'next';
++// Polices de la boutique hébergées avec le site : pas de requête externe, affichage plus rapide sur mobile.
++import '@fontsource-variable/syne';
++import '@fontsource-variable/instrument-sans';
+ import './globals.css';
+ 
+ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+@@ -23,7 +26,7 @@ export const viewport: Viewport = {
+   width: 'device-width',
+   initialScale: 1,
+   viewportFit: 'cover',
+-  themeColor: '#FAF7F2',
++  themeColor: '#0B3B2E',
+ };
+ 
+ const jsonLd = {
+diff --git a/src/components/ArrivalsCTA.tsx b/src/components/ArrivalsCTA.tsx
+index 2b5b48c..51c8518 100644
+--- a/src/components/ArrivalsCTA.tsx
++++ b/src/components/ArrivalsCTA.tsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+-import { BellRing, ArrowRight, MessageCircle } from 'lucide-react';
++import { MessageCircle } from 'lucide-react';
+ import { useStore } from '../lib/store';
++import { track } from '../lib/analytics';
+ import { buildGeneralWhatsAppLink } from '../lib/whatsapp';
+ 
+ export const ArrivalsCTA: React.FC = () => {
+@@ -8,42 +9,28 @@ export const ArrivalsCTA: React.FC = () => {
+   const whatsapp = buildGeneralWhatsAppLink({ phone: settings.whatsappNumber, shopName: settings.shopName, lang });
+ 
+   return (
+-    <section className="bg-sand border-y border-onyx/10">
+-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18">
+-        <div className="rounded-[2rem] bg-onyx text-ivory p-6 sm:p-8 lg:p-10">
+-          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
+-            <div>
+-              <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-gold">
+-                <BellRing className="h-3.5 w-3.5" />
+-                {tr('Arrivages', 'New arrivals')}
+-              </span>
+-              <h2 className="mt-4 font-serif text-3xl sm:text-4xl font-medium leading-tight">
+-                {tr('Vous cherchez un modèle précis ?', 'Looking for a specific piece?')}
+-              </h2>
+-              <p className="mt-3 max-w-xl text-ivory/75 text-base">
+-                {tr('Contactez-nous pour être prévenu dès qu’un nouvel arrivage ou un modèle similaire arrive en boutique.', 'Contact us to be notified as soon as a new arrival or a similar model arrives in the shop.')}
+-              </p>
+-            </div>
+-
+-            <div className="rounded-3xl border border-ivory/10 bg-ivory/5 p-5 sm:p-6">
+-              <div className="flex items-center gap-3 text-gold">
+-                <MessageCircle className="h-5 w-5 fill-current" />
+-                <span className="text-sm uppercase tracking-[0.2em]">WhatsApp</span>
+-              </div>
+-              <p className="mt-4 text-ivory/80 text-sm sm:text-base">
+-                {tr('Dites-nous le modèle que vous voulez, nous vous tiendrons informé dès son arrivée.', 'Tell us the model you want, and we will keep you informed as soon as it arrives.')}
+-              </p>
+-              <a
+-                href={whatsapp}
+-                target="_blank"
+-                rel="noopener noreferrer"
+-                className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-onyx transition-colors hover:bg-ivory"
+-              >
+-                {tr('Contacter la boutique', 'Contact the shop')}
+-                <ArrowRight className="h-4 w-4" />
+-              </a>
+-            </div>
+-          </div>
++    <section className="bg-brass text-velvet">
++      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:gap-16">
++        <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold max-w-[16ch]">
++          {tr('Vous cherchez un modèle précis ?', 'Looking for a specific piece?')}
++        </h2>
++        <div>
++          <p className="text-lg max-w-[42ch]">
++            {tr(
++              'Dites-nous lequel sur WhatsApp. Nous vous prévenons dès qu’il arrive en boutique.',
++              'Tell us which one on WhatsApp. We will let you know as soon as it reaches the shop.',
++            )}
++          </p>
++          <a
++            href={whatsapp}
++            onClick={() => track('contact')}
++            target="_blank"
++            rel="noopener noreferrer"
++            className="mt-6 inline-flex h-12 items-center gap-2 rounded-sm bg-velvet px-7 font-semibold text-white hover:bg-velvet-deep"
++          >
++            <MessageCircle className="h-[18px] w-[18px] fill-current" aria-hidden="true" />
++            {tr('Écrire à la boutique', 'Message the shop')}
++          </a>
+         </div>
+       </div>
+     </section>
+diff --git a/src/components/Categories.tsx b/src/components/Categories.tsx
+new file mode 100644
+index 0000000..8e1ffd4
+--- /dev/null
++++ b/src/components/Categories.tsx
+@@ -0,0 +1,51 @@
++import React from 'react';
++import { useStore } from '../lib/store';
++import { CATEGORIES } from '../lib/initialData';
++import { ProductCategory } from '../types';
++
++interface CategoriesProps {
++  onSelectCategory: (category: ProductCategory) => void;
++}
++
++/** Les cinq univers, en grande typographie, avec le nombre de pièces réellement en vitrine. */
++export const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
++  const { products, lang, tr } = useStore();
++  const count = (id: string) => products.filter((p) => !p.hidden && p.category === id).length;
++
++  return (
++    <section aria-labelledby="univers" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-6">
++      <h2 id="univers" className="sr-only">{tr('Choisir un univers', 'Choose a category')}</h2>
++      <ul className="border-t border-velvet/25">
++        {CATEGORIES.map((cat) => {
++          const n = count(cat.id);
++          return (
++            <li key={cat.id} className="border-b border-velvet/25">
++              <button
++                type="button"
++                onClick={() => onSelectCategory(cat.id)}
++                className="group w-full min-h-[4.5rem] py-4 sm:py-6 flex items-center justify-between gap-4 text-left cursor-pointer"
++              >
++                <span className="min-w-0">
++                  <span className="block font-heading font-extrabold text-[2rem] sm:text-6xl lg:text-7xl leading-none tracking-tight group-hover:text-tag">
++                    {lang === 'fr' ? cat.fr : cat.en}
++                  </span>
++                  <span className="mt-1.5 block text-sm tabular-nums text-moss">
++                    {n} {tr(n > 1 ? 'pièces' : 'pièce', n > 1 ? 'items' : 'item')}
++                  </span>
++                </span>
++                <img
++                  src={cat.image}
++                  alt=""
++                  loading="lazy"
++                  width={160}
++                  height={160}
++                  className="shrink-0 w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 object-cover bg-mist"
++                />
++              </button>
++            </li>
++          );
++        })}
++      </ul>
++    </section>
++  );
++};
+diff --git a/src/components/FloatingWhatsApp.tsx b/src/components/FloatingWhatsApp.tsx
+index a4c423f..9ba2a67 100644
+--- a/src/components/FloatingWhatsApp.tsx
++++ b/src/components/FloatingWhatsApp.tsx
+@@ -4,6 +4,7 @@ import { useStore } from '../lib/store';
+ import { track } from '../lib/analytics';
+ import { buildGeneralWhatsAppLink } from '../lib/whatsapp';
+ 
++/** Raccourci WhatsApp sur ordinateur. Sur téléphone, le bouton de l'en-tête suffit et l'écran reste libre. */
+ export const FloatingWhatsApp: React.FC = () => {
+   const { settings, lang, tr } = useStore();
+   const link = buildGeneralWhatsAppLink({ phone: settings.whatsappNumber, shopName: settings.shopName, lang });
+@@ -14,10 +15,10 @@ export const FloatingWhatsApp: React.FC = () => {
+       onClick={() => track('contact')}
+       target="_blank"
+       rel="noopener noreferrer"
+-      className="wa-float fixed z-40 right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] w-14 h-14 rounded-full bg-wa text-white flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform"
++      className="hidden md:flex fixed z-40 right-6 bottom-6 w-14 h-14 rounded-full bg-wa-deep hover:bg-velvet text-white items-center justify-center shadow-lg"
+       aria-label={tr('Discuter sur WhatsApp', 'Chat on WhatsApp')}
+     >
+-      <MessageCircle className="w-7 h-7 fill-current" />
++      <MessageCircle className="w-7 h-7 fill-current" aria-hidden="true" />
+     </a>
+   );
+ };
+diff --git a/src/components/Footer.tsx b/src/components/Footer.tsx
+index c0221df..9a56608 100644
+--- a/src/components/Footer.tsx
++++ b/src/components/Footer.tsx
+@@ -8,24 +8,44 @@ interface FooterProps {
+ }
+ 
+ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenAdmin }) => {
+-  const { settings, lang, tr } = useStore();
++  const { products, settings, lang, tr } = useStore();
++  const hasNew = products.some((p) => !p.hidden && p.isNew && !p.soldOut);
++
++  const links = [
++    { id: 'catalogue', label: tr('Catalogue', 'Catalog') },
++    ...(hasNew ? [{ id: 'arrivages', label: tr('Nouveautés', 'New arrivals') }] : []),
++    { id: 'gros', label: tr('Vente en gros', 'Wholesale') },
++    { id: 'boutique', label: tr('Boutique', 'Shop') },
++  ];
+ 
+   return (
+-    <footer className="bg-onyx text-ivory">
+-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 flex flex-col items-center text-center gap-5">
+-        <span className="font-serif text-3xl tracking-[0.14em]">{settings.shopName}</span>
+-        <p className="text-ivory/60 text-sm">{lang === 'fr' ? settings.sloganFr : settings.sloganEn}</p>
+-        <nav className="flex gap-6 text-sm text-ivory/70">
+-          <button type="button" onClick={() => onNavigate('catalogue')} className="hover:text-gold cursor-pointer transition-colors">{tr('Catalogue', 'Catalog')}</button>
+-          <button type="button" onClick={() => onNavigate('arrivages')} className="hover:text-gold cursor-pointer transition-colors">{tr('Arrivages', 'New arrivals')}</button>
+-          <button type="button" onClick={() => onNavigate('gros')} className="hover:text-gold cursor-pointer transition-colors">{tr('Vente en gros', 'Wholesale')}</button>
+-          <button type="button" onClick={() => onNavigate('boutique')} className="hover:text-gold cursor-pointer transition-colors">{tr('Boutique', 'Shop')}</button>
+-        </nav>
+-        <p className="text-xs text-gold">{tr('Vente en détail et en gros · Livraison dans tout le Cameroun · Paiement à la livraison, Orange Money ou MTN MoMo.', 'Retail and wholesale · Delivery across Cameroon · Cash on delivery, Orange Money or MTN MoMo.')}</p>
+-        <div className="w-full pt-6 mt-2 border-t border-ivory/10 flex items-center justify-between text-xs text-ivory/40">
++    <footer className="on-dark bg-velvet-deep text-porcelain">
++      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-28 md:pb-10">
++        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
++          <div>
++            <p className="font-heading text-4xl sm:text-5xl font-extrabold tracking-tight">{settings.shopName}</p>
++            <p className="mt-2 text-porcelain/80">{lang === 'fr' ? settings.sloganFr : settings.sloganEn}</p>
++          </div>
++          <nav aria-label={tr('Pied de page', 'Footer')} className="flex flex-wrap gap-x-6 text-porcelain/90">
++            {links.map((l) => (
++              <button key={l.id} type="button" onClick={() => onNavigate(l.id)} className="h-11 hover:text-brass cursor-pointer">
++                {l.label}
++              </button>
++            ))}
++          </nav>
++        </div>
++
++        <p className="mt-8 max-w-[60ch] text-sm text-brass">
++          {tr(
++            'Vente au détail et en gros. Livraison dans tout le Cameroun. Paiement à la livraison, Orange Money ou MTN MoMo.',
++            'Retail and wholesale. Delivery across Cameroon. Cash on delivery, Orange Money or MTN MoMo.',
++          )}
++        </p>
++
++        <div className="mt-8 pt-4 border-t border-porcelain/20 flex items-center justify-between text-sm text-porcelain/75">
+           <span>© {new Date().getFullYear()} {settings.shopName}</span>
+-          <button type="button" onClick={onOpenAdmin} className="inline-flex items-center gap-1.5 h-9 px-2 hover:text-gold cursor-pointer transition-colors">
+-            <Lock className="w-3.5 h-3.5" /> {tr('Espace gérant', 'Manager')}
++          <button type="button" onClick={onOpenAdmin} className="inline-flex items-center gap-1.5 h-11 px-2 hover:text-brass cursor-pointer">
++            <Lock className="w-3.5 h-3.5" aria-hidden="true" /> {tr('Espace gérant', 'Manager')}
+           </button>
+         </div>
+       </div>
+diff --git a/src/components/Hero.tsx b/src/components/Hero.tsx
+index 2d0f723..40bc1ab 100644
+--- a/src/components/Hero.tsx
++++ b/src/components/Hero.tsx
+@@ -1,52 +1,50 @@
+ import React from 'react';
+-import { MessageCircle, Wallet, Truck, Boxes } from 'lucide-react';
++import { MessageCircle } from 'lucide-react';
+ import { useStore } from '../lib/store';
+ import { track } from '../lib/analytics';
+-import { buildGeneralWhatsAppLink } from '../lib/whatsapp';
+-import { CATEGORIES, IMG } from '../lib/initialData';
+-import { ProductCategory } from '../types';
++import { buildGeneralWhatsAppLink, formatFCFA } from '../lib/whatsapp';
++import { IMG } from '../lib/initialData';
++import { Product } from '../types';
+ 
+ interface HeroProps {
+-  onSelectCategory: (category: ProductCategory) => void;
++  featured: Product | null;
++  onOpenProduct: (id: string) => void;
+   onExploreCatalog: () => void;
+ }
+ 
+-export const Hero: React.FC<HeroProps> = ({ onSelectCategory, onExploreCatalog }) => {
++export const Hero: React.FC<HeroProps> = ({ featured, onOpenProduct, onExploreCatalog }) => {
+   const { settings, lang, tr } = useStore();
+   const whatsapp = buildGeneralWhatsAppLink({ phone: settings.whatsappNumber, shopName: settings.shopName, lang });
+ 
+   const perks = [
+-    { icon: MessageCircle, text: tr('Commande en 1 clic sur WhatsApp', 'Order in 1 tap on WhatsApp') },
+-    { icon: Wallet, text: tr('Paiement via Orange Money, MTN MoMo', 'Cash on delivery, Orange Money, MTN MoMo') },
+-    { icon: Truck, text: tr('Livraison dans tout le Cameroun', 'Delivery across Cameroon') },
+-    { icon: Boxes, text: tr('Détaillant et grossiste : prix de gros sur chaque pièce', 'Retail and wholesale: a wholesale price on every piece') },
++    { title: tr('Commande sur WhatsApp', 'Order on WhatsApp'), text: tr('Un message suffit, sans compte à créer.', 'One message is enough. No account needed.') },
++    { title: tr('Paiement', 'Payment'), text: tr('À la livraison, Orange Money ou MTN MoMo.', 'Cash on delivery, Orange Money or MTN MoMo.') },
++    { title: tr('Livraison', 'Delivery'), text: tr('Dans tout le Cameroun.', 'Across Cameroon.') },
++    { title: tr('Prix de gros', 'Wholesale prices'), text: tr('Affiché sur chaque pièce.', 'Shown on every piece.') },
+   ];
+ 
++  const featuredName = featured ? (lang === 'en' && featured.nameEn ? featured.nameEn : featured.name) : '';
++  const featuredWholesale = featured && (featured.wholesalePrice ?? 0) > 0;
++
+   return (
+     <section id="accueil">
+-      {/* Bannière */}
+-      <div className="relative isolate overflow-hidden bg-onyx min-h-[78svh] sm:min-h-[70vh] flex items-end">
+-        <img
+-          src={settings.bannerImage || IMG.hero}
+-          alt=""
+-          fetchPriority="high"
+-          className="absolute inset-0 -z-10 w-full h-full object-cover object-[62%_50%] sm:object-center"
+-        />
+-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-onyx/90 via-onyx/55 to-onyx/10 sm:bg-gradient-to-r sm:from-onyx/80 sm:via-onyx/35 sm:to-transparent" />
+-
+-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 mb-10 pb-10 sm:pb-16 pt-24">
+-          <div className="max-w-xl text-ivory">
+-            <h1 className="mt-3 font-serif text-[3.9rem] sm:text-6xl lg:text-7xl mb-5 font-medium leading-[1.02]">
++      <div className="on-dark bg-velvet text-porcelain overflow-x-clip">
++        <div className="grid lg:grid-cols-2">
++          <div className="px-4 sm:px-6 py-14 sm:py-20 lg:py-28 lg:pl-[max(2rem,calc((100vw-80rem)/2+2rem))] lg:pr-14 flex flex-col justify-center">
++            <h1 className="text-[2.75rem] sm:text-6xl xl:text-7xl font-extrabold leading-[1.02] max-w-[13ch]">
+               {lang === 'fr' ? settings.sloganFr : settings.sloganEn}
+             </h1>
+-            <p className="mt-4 text-base sm:text-lg text-ivory/85 max-w-md">
+-              {tr('Montres et bijoux pour femmes et hommes, au détail et en gros. Une photo, un prix, un message WhatsApp.', "Women's and men's watches and jewelry, retail and wholesale. One photo, one price, one WhatsApp message.")}
++            <p className="mt-6 text-lg text-porcelain/85 max-w-[42ch]">
++              {tr(
++                'Montres et bijoux pour femmes et hommes, au détail et en gros. Une photo, un prix, un message WhatsApp.',
++                "Women's and men's watches and jewelry, retail and wholesale. One photo, one price, one WhatsApp message.",
++              )}
+             </p>
+-            <div className="mt-7 flex flex-wrap gap-3">
++            <div className="mt-9 flex flex-wrap gap-3">
+               <button
+                 type="button"
+                 onClick={onExploreCatalog}
+-                className="btn-gold h-12 px-7 rounded-full bg-gold hover:bg-ivory text-onyx text-sm font-semibold tracking-wide cursor-pointer transition-colors"
++                className="h-12 px-7 rounded-sm bg-brass hover:bg-porcelain text-velvet font-semibold cursor-pointer"
+               >
+                 {tr('Voir le catalogue', 'Browse the catalog')}
+               </button>
+@@ -55,51 +53,63 @@ export const Hero: React.FC<HeroProps> = ({ onSelectCategory, onExploreCatalog }
+                 onClick={() => track('contact')}
+                 target="_blank"
+                 rel="noopener noreferrer"
+-                className="h-12 px-6 rounded-full border border-ivory/40 hover:bg-ivory/10 text-ivory text-sm font-medium inline-flex items-center gap-2 transition-colors"
++                className="h-12 px-6 rounded-sm border border-porcelain/55 hover:bg-porcelain hover:text-velvet font-semibold inline-flex items-center gap-2"
+               >
+-                <MessageCircle className="w-4 h-4 fill-current" />
++                <MessageCircle className="w-[18px] h-[18px] fill-current" aria-hidden="true" />
+                 {tr('Écrire sur WhatsApp', 'Chat on WhatsApp')}
+               </a>
+             </div>
+           </div>
+-        </div>
+-      </div>
+ 
+-      {/* Bandeau de réassurance */}
+-      <div className="bg-sand border-y border-onyx/10">
+-        <ul className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 text-[13px] text-onyx/80">
+-          {perks.map(({ icon: Icon, text }) => (
+-            <li key={text} className="flex items-start gap-2.5">
+-              <Icon className="w-4 h-4 mt-0.5 shrink-0 text-gold-deep" />
+-              <span className="leading-snug">{text}</span>
+-            </li>
+-          ))}
+-        </ul>
+-      </div>
++          <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-auto lg:min-h-[640px] bg-velvet-deep">
++            <img
++              src={settings.bannerImage || IMG.hero}
++              alt=""
++              fetchPriority="high"
++              className="absolute inset-0 w-full h-full object-cover object-[62%_50%]"
++            />
+ 
+-      {/* Catégories */}
+-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16">
+-        <div className="mb-6">
+-          <h2 className="font-serif text-3xl sm:text-4xl font-medium">{tr('Nos univers', 'Shop by category')}</h2>
+-          <span className="gold-rule mt-3" />
+-        </div>
+-        <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex sm:grid sm:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-1">
+-          {CATEGORIES.map((cat) => (
+-            <button
+-              key={cat.id}
+-              type="button"
+-              onClick={() => onSelectCategory(cat.id)}
+-              className="reveal group relative shrink-0 w-[44%] sm:w-auto snap-start aspect-[4/5] rounded-2xl overflow-hidden bg-sand cursor-pointer text-left"
+-            >
+-              <img src={cat.image} alt="" loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+-              <div className="absolute inset-0 bg-gradient-to-t from-onyx/75 via-transparent to-transparent" />
+-              <span className="absolute bottom-3 left-3 right-3 font-serif text-xl text-ivory leading-tight">
+-                {lang === 'fr' ? cat.fr : cat.en}
+-              </span>
+-            </button>
+-          ))}
++            {featured && (
++              <div className="absolute z-10 top-0 right-5 sm:right-10 lg:right-auto lg:left-10 xl:left-14">
++                <div className="sway">
++                  {/* Ficelle et clou : l'étiquette est accrochée au bord de la photo */}
++                  <span aria-hidden="true" className="mx-auto block w-px h-6 bg-brass" />
++                  <button
++                    type="button"
++                    onClick={() => onOpenProduct(featured.id)}
++                    className="hang block w-[10.5rem] sm:w-[12.5rem] text-left text-velvet cursor-pointer pt-9 px-3.5 pb-4 hover:bg-white drop-shadow-[0_6px_10px_rgba(0,0,0,.35)]"
++                    aria-label={`${featuredName}, ${formatFCFA(featured.price, lang)}`}
++                  >
++                    <span className="block text-xs text-moss">
++                      {featured.isNew ? tr('Nouveau', 'New') : tr('À découvrir', 'Discover')} · {featured.reference}
++                    </span>
++                    {featured.images[0] && (
++                      <img src={featured.images[0]} alt="" className="hidden sm:block mt-2 w-full aspect-[4/3] object-cover bg-mist" />
++                    )}
++                    <span className="mt-2 block font-heading font-bold text-[15px] sm:text-base leading-snug line-clamp-2">{featuredName}</span>
++                    <span className="mt-1.5 block font-bold tabular-nums text-xl sm:text-2xl text-tag leading-none">{formatFCFA(featured.price, lang)}</span>
++                    {featuredWholesale && (
++                      <span className="mt-1.5 block text-xs text-moss">
++                        {tr('Gros', 'Wholesale')} {formatFCFA(featured.wholesalePrice!, lang)}
++                      </span>
++                    )}
++                  </button>
++                </div>
++              </div>
++            )}
++          </div>
+         </div>
+       </div>
++
++      {/* Ce que la cliente doit savoir avant de commander */}
++      <ul className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 grid grid-cols-2 lg:grid-cols-4 gap-y-7 gap-x-6">
++        {perks.map((p) => (
++          <li key={p.title} className="border-l-2 border-brass pl-4">
++            <p className="font-heading font-bold text-base leading-snug">{p.title}</p>
++            <p className="mt-1 text-sm text-moss">{p.text}</p>
++          </li>
++        ))}
++      </ul>
+     </section>
+   );
+ };
+diff --git a/src/components/MobileNav.tsx b/src/components/MobileNav.tsx
+new file mode 100644
+index 0000000..3dab1ca
+--- /dev/null
++++ b/src/components/MobileNav.tsx
+@@ -0,0 +1,51 @@
++import React from 'react';
++import { Boxes, Gem, House, Sparkles, Store } from 'lucide-react';
++import { useStore } from '../lib/store';
++
++interface MobileNavProps {
++  onNavigate: (sectionId: string) => void;
++  activeSection: string;
++}
++
++/** Barre de navigation fixe en bas de l'écran, sur téléphone uniquement (5 entrées au maximum). */
++export const MobileNav: React.FC<MobileNavProps> = ({ onNavigate, activeSection }) => {
++  const { products, tr } = useStore();
++  const hasNew = products.some((p) => !p.hidden && p.isNew && !p.soldOut);
++
++  const items = [
++    { id: 'accueil', icon: House, label: tr('Accueil', 'Home') },
++    { id: 'catalogue', icon: Gem, label: tr('Catalogue', 'Catalog') },
++    ...(hasNew ? [{ id: 'arrivages', icon: Sparkles, label: tr('Nouveautés', 'New') }] : []),
++    { id: 'gros', icon: Boxes, label: tr('Gros', 'Wholesale') },
++    { id: 'boutique', icon: Store, label: tr('Boutique', 'Shop') },
++  ];
++
++  return (
++    <nav
++      className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-porcelain/95 backdrop-blur-md border-t border-velvet/15 pb-[env(safe-area-inset-bottom)]"
++      aria-label="Navigation"
++    >
++      <ul className="flex h-16 items-stretch">
++        {items.map(({ id, icon: Icon, label }) => {
++          const active = activeSection === id;
++          return (
++            <li key={id} className="flex-1">
++              <button
++                type="button"
++                onClick={() => onNavigate(id)}
++                aria-current={active ? 'page' : undefined}
++                className={`relative w-full h-full flex flex-col items-center justify-center gap-1 text-xs cursor-pointer ${
++                  active ? 'text-velvet font-semibold' : 'text-moss'
++                }`}
++              >
++                {active && <span className="absolute top-0 inset-x-3 h-[3px] bg-tag" />}
++                <Icon className="w-[22px] h-[22px]" aria-hidden="true" />
++                {label}
++              </button>
++            </li>
++          );
++        })}
++      </ul>
++    </nav>
++  );
++};
+diff --git a/src/components/Navbar.tsx b/src/components/Navbar.tsx
+index c845b27..6597714 100644
+--- a/src/components/Navbar.tsx
++++ b/src/components/Navbar.tsx
+@@ -9,12 +9,14 @@ interface NavbarProps {
+ }
+ 
+ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) => {
+-  const { settings, lang, setLanguage, tr } = useStore();
++  const { products, settings, lang, setLanguage, tr } = useStore();
+ 
++  // « Nouveautés » n'existe que s'il y a des pièces nouvelles à montrer
++  const hasNew = products.some((p) => !p.hidden && p.isNew && !p.soldOut);
+   const links = [
+     { id: 'accueil', label: tr('Accueil', 'Home') },
+     { id: 'catalogue', label: tr('Catalogue', 'Catalog') },
+-    { id: 'arrivages', label: tr('Arrivages', 'New arrivals') },
++    ...(hasNew ? [{ id: 'arrivages', label: tr('Nouveautés', 'New') }] : []),
+     { id: 'gros', label: tr('Vente en gros', 'Wholesale') },
+     { id: 'boutique', label: tr('Boutique', 'Shop') },
+   ];
+@@ -22,42 +24,46 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) =>
+   const whatsapp = buildGeneralWhatsAppLink({ phone: settings.whatsappNumber, shopName: settings.shopName, lang });
+ 
+   return (
+-    <header className="sticky top-0 z-40 bg-ivory/90 backdrop-blur-md border-b border-onyx/10">
++    <header className="sticky top-0 z-40 bg-porcelain/92 backdrop-blur-md border-b border-velvet/15">
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+-        <button type="button" onClick={() => onNavigate('accueil')} className="cursor-pointer" aria-label={settings.shopName}>
+-          <span className="font-serif text-[1.3rem] sm:text-3xl font-semibold tracking-[0.1em] leading-none whitespace-nowrap">
+-            {settings.shopName.split(' ')[0]}
+-            <span className="text-gold-deep font-medium"> {settings.shopName.split(' ').slice(1).join(' ')}</span>
+-          </span>
++        <button
++          type="button"
++          onClick={() => onNavigate('accueil')}
++          className="h-11 min-w-0 flex items-center cursor-pointer font-heading text-base sm:text-2xl font-extrabold tracking-tight whitespace-nowrap"
++          aria-label={settings.shopName}
++        >
++          {settings.shopName}
+         </button>
+ 
+-        <nav className="hidden md:flex items-center gap-8 text-sm" aria-label="Navigation">
+-          {links.map((l) => (
+-            <button
+-              key={l.id}
+-              type="button"
+-              onClick={() => onNavigate(l.id)}
+-              aria-current={activeSection === l.id ? 'page' : undefined}
+-              className={`relative py-1 cursor-pointer transition-colors ${
+-                activeSection === l.id ? 'text-onyx font-medium' : 'text-onyx/60 hover:text-onyx'
+-              }`}
+-            >
+-              {l.label}
+-              {activeSection === l.id && <span className="absolute -bottom-0.5 inset-x-0 h-px bg-gold" />}
+-            </button>
+-          ))}
++        <nav className="hidden md:flex items-center gap-7 text-[15px]" aria-label="Navigation">
++          {links.map((l) => {
++            const active = activeSection === l.id;
++            return (
++              <button
++                key={l.id}
++                type="button"
++                onClick={() => onNavigate(l.id)}
++                aria-current={active ? 'page' : undefined}
++                className={`h-11 border-b-2 cursor-pointer ${
++                  active ? 'border-tag font-semibold text-velvet' : 'border-transparent text-moss hover:text-velvet'
++                }`}
++              >
++                {l.label}
++              </button>
++            );
++          })}
+         </nav>
+ 
+-        <div className="flex items-center gap-2">
+-          <div className="flex items-center rounded-full border border-onyx/15 p-0.5 text-xs font-medium" role="group" aria-label="Langue / Language">
++        <div className="flex items-center gap-1.5">
++          <div className="flex items-center text-sm font-semibold" role="group" aria-label="Langue / Language">
+             {(['fr', 'en'] as const).map((code) => (
+               <button
+                 key={code}
+                 type="button"
+                 onClick={() => setLanguage(code)}
+                 aria-pressed={lang === code}
+-                className={`h-8 min-w-9 px-2 rounded-full cursor-pointer transition-colors ${
+-                  lang === code ? 'bg-onyx text-ivory' : 'text-onyx/60 hover:text-onyx'
++                className={`h-11 min-w-11 px-2 cursor-pointer border-b-2 ${
++                  lang === code ? 'border-tag text-velvet' : 'border-transparent text-moss hover:text-velvet'
+                 }`}
+               >
+                 {code.toUpperCase()}
+@@ -69,10 +75,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeSection }) =>
+             href={whatsapp}
+             target="_blank"
+             rel="noopener noreferrer"
+-            className="h-10 px-3.5 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center gap-2 transition-colors"
++            className="h-11 min-w-11 px-3 rounded-sm bg-velvet hover:bg-velvet-deep text-white text-sm font-semibold inline-flex items-center justify-center gap-2"
+             aria-label="WhatsApp"
+           >
+-            <MessageCircle className="w-4 h-4 fill-current" />
++            <MessageCircle className="w-[18px] h-[18px] fill-current" aria-hidden="true" />
+             <span className="hidden sm:inline">WhatsApp</span>
+           </a>
+         </div>
+diff --git a/src/components/NewArrivals.tsx b/src/components/NewArrivals.tsx
+index e9462c8..22886de 100644
+--- a/src/components/NewArrivals.tsx
++++ b/src/components/NewArrivals.tsx
+@@ -1,5 +1,4 @@
+ import React from 'react';
+-import { ArrowRight } from 'lucide-react';
+ import { useStore } from '../lib/store';
+ import { ProductCard } from './ProductCard';
+ 
+@@ -15,20 +14,23 @@ export const NewArrivals: React.FC<NewArrivalsProps> = ({ onOpen, onSeeAll }) =>
+   const ids = items.map((p) => p.id);
+ 
+   return (
+-    <section id="arrivages" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+-      <div className="mb-6 flex items-end justify-between gap-4">
+-        <div>
+-          <h2 className="font-serif text-3xl sm:text-4xl font-medium">{tr('Nouveautés', 'New arrivals')}</h2>
+-          <span className="gold-rule mt-3" />
++    <section id="arrivages" className="bg-mist border-t-4 border-brass">
++      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
++        <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
++          <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold">{tr('Nouveautés', 'New arrivals')}</h2>
++          <button
++            type="button"
++            onClick={onSeeAll}
++            className="min-h-11 font-semibold underline underline-offset-4 decoration-2 decoration-tag hover:text-tag cursor-pointer"
++          >
++            {tr('Voir tout le catalogue', 'See the whole catalog')}
++          </button>
++        </div>
++        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-10 sm:gap-x-6">
++          {items.map((p, i) => (
++            <ProductCard key={p.id} product={p} onOpen={() => onOpen(ids, i)} />
++          ))}
+         </div>
+-        <button type="button" onClick={onSeeAll} className="text-sm font-medium text-gold-deep hover:text-onyx inline-flex items-center gap-1.5 cursor-pointer transition-colors">
+-          {tr('Tout voir', 'View all')} <ArrowRight className="w-4 h-4" />
+-        </button>
+-      </div>
+-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6">
+-        {items.map((p, i) => (
+-          <ProductCard key={p.id} product={p} onOpen={() => onOpen(ids, i)} />
+-        ))}
+       </div>
+     </section>
+   );
+diff --git a/src/components/PhotoModal.tsx b/src/components/PhotoModal.tsx
+index 86fc51d..aab06cf 100644
+--- a/src/components/PhotoModal.tsx
++++ b/src/components/PhotoModal.tsx
+@@ -61,7 +61,7 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+ 
+   return (
+     <div
+-      className="fixed inset-0 z-50 bg-onyx/90 backdrop-blur-sm flex items-end sm:items-center justify-center fade-in"
++      className="fixed inset-0 z-50 bg-velvet-deep/80 backdrop-blur-sm flex items-end sm:items-center justify-center fade-in"
+       onClick={onClose}
+       role="dialog"
+       aria-modal="true"
+@@ -69,41 +69,44 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+     >
+       <div
+         key={product.id}
+-        className="sheet-in relative w-full sm:max-w-md max-h-[100svh] overflow-y-auto bg-onyx text-ivory sm:rounded-3xl rounded-t-3xl shadow-2xl"
++        className="sheet-in relative w-full sm:max-w-md max-h-[100svh] overflow-y-auto bg-porcelain text-velvet shadow-2xl"
+         onClick={(e) => e.stopPropagation()}
+       >
+         <div
+-          className="relative aspect-square bg-black select-none"
++          className="relative aspect-square bg-mist select-none"
+           onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+           onTouchEnd={onTouchEnd}
+         >
+-          <img src={product.images[photo] ?? product.images[0]} alt={name} className={`w-full h-full object-cover ${soldOut ? 'opacity-60 grayscale' : ''}`} />
++          <img src={product.images[photo] ?? product.images[0]} alt={name} className={`w-full h-full object-cover ${soldOut ? 'opacity-55 grayscale' : ''}`} />
+ 
+           <button
+             type="button"
+             onClick={onClose}
+-            className="absolute top-3 right-3 w-11 h-11 rounded-full bg-onyx/70 hover:bg-onyx text-ivory flex items-center justify-center cursor-pointer backdrop-blur"
++            className="absolute top-3 right-3 w-11 h-11 bg-porcelain hover:bg-white text-velvet flex items-center justify-center cursor-pointer"
+             aria-label={tr('Fermer', 'Close')}
+           >
+-            <X className="w-5 h-5" />
++            <X className="w-5 h-5" aria-hidden="true" />
+           </button>
+ 
+-          {(soldOut || product.isNew) && (
+-            <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider ${soldOut ? 'bg-ivory text-onyx' : 'bg-gold text-onyx'}`}>
+-              {soldOut ? tr('Épuisé', 'Sold out') : tr('Nouveau', 'New')}
+-            </span>
++          {product.isNew && !soldOut && (
++            <span className="absolute top-0 left-0 bg-brass text-velvet text-xs font-semibold px-3 py-1.5">{tr('Nouveau', 'New')}</span>
+           )}
+ 
++          {/* La même étiquette que dans le catalogue */}
++          <span className={`tag ${soldOut ? 'tag-off' : ''} pointer-events-none absolute left-0 bottom-4 font-bold tabular-nums text-lg`}>
++            {soldOut ? tr('Épuisé', 'Sold out') : formatFCFA(product.price, lang)}
++          </span>
++
+           {hasMultiple && (
+             <>
+-              <button type="button" onClick={() => onStep(-1)} className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-onyx/70 hover:bg-onyx items-center justify-center cursor-pointer" aria-label={tr('Précédent', 'Previous')}>
+-                <ChevronLeft className="w-5 h-5" />
++              <button type="button" onClick={() => onStep(-1)} className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-porcelain hover:bg-white text-velvet items-center justify-center cursor-pointer" aria-label={tr('Précédent', 'Previous')}>
++                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+               </button>
+-              <button type="button" onClick={() => onStep(1)} className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-onyx/70 hover:bg-onyx items-center justify-center cursor-pointer" aria-label={tr('Suivant', 'Next')}>
+-                <ChevronRight className="w-5 h-5" />
++              <button type="button" onClick={() => onStep(1)} className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-porcelain hover:bg-white text-velvet items-center justify-center cursor-pointer" aria-label={tr('Suivant', 'Next')}>
++                <ChevronRight className="w-5 h-5" aria-hidden="true" />
+               </button>
+-              <span className="sm:hidden absolute bottom-3 right-3 text-[11px] px-2.5 py-1 rounded-full bg-onyx/70">
+-                {tr('← glissez →', '← swipe →')}
++              <span className="sm:hidden absolute bottom-3 right-3 text-xs font-medium px-2.5 py-1 bg-porcelain text-velvet">
++                {tr('Glissez pour changer de pièce', 'Swipe to change piece')}
+               </span>
+             </>
+           )}
+@@ -116,7 +119,8 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+                 key={src + i}
+                 type="button"
+                 onClick={() => setPhoto(i)}
+-                className={`w-14 h-14 rounded-xl overflow-hidden cursor-pointer border-2 transition-colors ${i === photo ? 'border-gold' : 'border-transparent opacity-60'}`}
++                aria-current={i === photo ? 'true' : undefined}
++                className={`w-14 h-14 overflow-hidden cursor-pointer border-2 ${i === photo ? 'border-tag' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                 aria-label={`Photo ${i + 1}`}
+               >
+                 <img src={src} alt="" className="w-full h-full object-cover" />
+@@ -126,41 +130,34 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+         )}
+ 
+         <div className="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+-          <div className="flex items-start justify-between gap-4">
+-            <div className="min-w-0">
+-              <h3 className="font-serif text-2xl font-medium leading-tight">{name}</h3>
+-              <span className="text-xs text-ivory/50 tracking-wide">Réf. {product.reference}</span>
+-            </div>
+-            <span className="font-serif text-2xl text-gold whitespace-nowrap">{formatFCFA(product.price, lang)}</span>
+-          </div>
++          <h3 className="font-heading text-2xl sm:text-3xl font-bold leading-tight">{name}</h3>
++          <p className="mt-1 text-sm text-moss">Réf. {product.reference}</p>
+ 
+           {hasWholesale && (
+-            <div className="mt-4 rounded-2xl bg-ivory/10 px-4 py-3 flex items-center justify-between gap-3">
+-              <span className="text-sm text-ivory/70">
++            <div className="mt-5 py-3 border-y border-velvet/25 flex items-center justify-between gap-3">
++              <span>
+                 {tr('Prix de gros', 'Wholesale price')}
+                 {settings.wholesaleMinQty > 0 && (
+-                  <span className="block text-xs text-ivory/50">
++                  <span className="block text-sm text-moss">
+                     {tr(`à partir de ${settings.wholesaleMinQty} pièces`, `from ${settings.wholesaleMinQty} pieces`)}
+                   </span>
+                 )}
+               </span>
+-              <span className="font-serif text-xl text-gold whitespace-nowrap">{formatFCFA(product.wholesalePrice!, lang)}</span>
++              <span className="text-xl font-bold tabular-nums whitespace-nowrap">{formatFCFA(product.wholesalePrice!, lang)}</span>
+             </div>
+           )}
+ 
+           {soldOut ? (
+-            <div className="mt-5 h-14 rounded-full bg-ivory/10 text-ivory/60 flex items-center justify-center text-sm">
+-              {tr('Cette pièce est épuisée', 'This piece is sold out')}
+-            </div>
++            <p className="mt-5 min-h-12 flex items-center text-moss">{tr('Cette pièce est épuisée.', 'This piece is sold out.')}</p>
+           ) : (
+             <a
+               href={link}
+               onClick={() => track('order', { pid: product.id, cat: product.category })}
+               target="_blank"
+               rel="noopener noreferrer"
+-              className="btn-gold mt-5 h-14 rounded-full bg-wa-deep hover:bg-wa text-white font-semibold inline-flex w-full items-center justify-center gap-2.5 transition-colors"
++              className="mt-5 h-14 rounded-sm bg-velvet hover:bg-velvet-deep text-white font-semibold inline-flex w-full items-center justify-center gap-2.5"
+             >
+-              <MessageCircle className="w-5 h-5 fill-current" />
++              <MessageCircle className="w-5 h-5 fill-current" aria-hidden="true" />
+               {tr('Commander sur WhatsApp', 'Order on WhatsApp')}
+             </a>
+           )}
+@@ -170,12 +167,12 @@ export const PhotoModal: React.FC<PhotoModalProps> = ({ product, hasMultiple, on
+               onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
+               target="_blank"
+               rel="noopener noreferrer"
+-              className="mt-3 h-12 rounded-full border border-gold/60 hover:bg-gold hover:text-onyx text-gold font-medium inline-flex w-full items-center justify-center gap-2 transition-colors"
++              className="mt-3 h-12 rounded-sm border border-velvet hover:bg-velvet hover:text-white font-semibold inline-flex w-full items-center justify-center gap-2"
+             >
+               {tr('Commander en gros', 'Order wholesale')}
+             </a>
+           )}
+-          <p className="mt-3 text-center text-xs text-ivory/50">
++          <p className="mt-4 text-sm text-moss">
+             {tr('Livraison dans tout le Cameroun. Paiement à la livraison, Orange Money ou MTN MoMo.', 'Delivery across Cameroon. Cash on delivery, Orange Money or MTN MoMo.')}
+           </p>
+         </div>
+diff --git a/src/components/ProductCard.tsx b/src/components/ProductCard.tsx
+index 6171a43..a1764d9 100644
+--- a/src/components/ProductCard.tsx
++++ b/src/components/ProductCard.tsx
+@@ -7,11 +7,10 @@ import { buildWhatsAppProductLink, formatFCFA } from '../lib/whatsapp';
+ 
+ interface ProductCardProps {
+   product: Product;
+-  dark?: boolean;
+   onOpen: () => void;
+ }
+ 
+-export const ProductCard: React.FC<ProductCardProps> = ({ product, dark = false, onOpen }) => {
++export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpen }) => {
+   const { settings, lang, tr } = useStore();
+   const name = lang === 'en' && product.nameEn ? product.nameEn : product.name;
+   const soldOut = Boolean(product.soldOut);
+@@ -22,67 +21,67 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, dark = false,
+     : '';
+ 
+   return (
+-    <article className="reveal group flex flex-col">
+-      <button
+-        type="button"
+-        onClick={onOpen}
+-        className="relative block aspect-square w-full overflow-hidden rounded-2xl bg-sand cursor-pointer"
+-        aria-label={name}
+-      >
+-        <img
+-          src={product.images[0]}
+-          alt={name}
+-          loading="lazy"
+-          decoding="async"
+-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${soldOut ? 'opacity-50 grayscale' : ''}`}
+-        />
+-        {(soldOut || product.isNew) && (
+-          <span
+-            className={`absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+-              soldOut ? 'bg-onyx/90 text-ivory' : 'bg-gold text-onyx'
+-            }`}
+-          >
+-            {soldOut ? tr('Épuisé', 'Sold out') : tr('Nouveau', 'New')}
+-          </span>
++    <article className="flex flex-col">
++      <div className="relative">
++        <button type="button" onClick={onOpen} className="block w-full aspect-square overflow-hidden bg-mist cursor-pointer" aria-label={name}>
++          <img
++            src={product.images[0]}
++            alt={name}
++            loading="lazy"
++            decoding="async"
++            width={600}
++            height={600}
++            className={`w-full h-full object-cover ${soldOut ? 'opacity-55 grayscale' : ''}`}
++          />
++        </button>
++
++        {product.isNew && !soldOut && (
++          <span className="absolute top-0 left-0 bg-brass text-velvet text-xs font-semibold px-2.5 py-1">{tr('Nouveau', 'New')}</span>
+         )}
+-      </button>
++
++        {/* L'étiquette de prix, accrochée au bas de la photo */}
++        <span
++          className={`tag ${soldOut ? 'tag-off' : ''} pointer-events-none absolute left-0 bottom-3 font-bold tabular-nums text-[15px] sm:text-base`}
++        >
++          {soldOut ? tr('Épuisé', 'Sold out') : formatFCFA(product.price, lang)}
++        </span>
++      </div>
+ 
+       <div className="pt-3 flex-1 flex flex-col">
+-        <h3 className={`font-serif text-lg sm:text-xl font-medium leading-tight ${dark ? 'text-ivory' : 'text-onyx'}`}>{name}</h3>
+-        <p className={`mt-1 text-[15px] font-medium tabular-nums ${dark ? 'text-gold' : 'text-gold-deep'}`}>{formatFCFA(product.price, lang)}</p>
+-        {hasWholesale && (
+-          <p className={`mt-0.5 text-[13px] tabular-nums ${dark ? 'text-ivory/70' : 'text-onyx/65'}`}>
+-            {tr('Prix de gros', 'Wholesale')} : <span className="font-medium">{formatFCFA(product.wholesalePrice!, lang)}</span>
+-          </p>
+-        )}
++        <h3 className="font-heading font-bold text-base sm:text-lg leading-snug line-clamp-2">{name}</h3>
++        <p className="mt-0.5 text-sm text-moss">Réf. {product.reference}</p>
+ 
+-        {soldOut ? (
+-          <span className={`mt-3 h-11 rounded-full inline-flex items-center justify-center text-sm ${dark ? 'bg-ivory/10 text-ivory/50' : 'bg-onyx/5 text-onyx/40'}`}>
+-            {tr('Indisponible', 'Unavailable')}
+-          </span>
+-        ) : (
+-          <a
+-            href={link}
+-            onClick={() => track('order', { pid: product.id, cat: product.category })}
+-            target="_blank"
+-            rel="noopener noreferrer"
+-            className="mt-3 h-11 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors"
+-          >
+-            <MessageCircle className="w-4 h-4 fill-current shrink-0" />
+-            <span className="truncate">{tr('Commander', 'Order')}</span>
+-          </a>
+-        )}
+-        {hasWholesale && !soldOut && (
+-          <a
+-            href={wholesaleLink}
+-            onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
+-            target="_blank"
+-            rel="noopener noreferrer"
+-            className={`mt-1 h-10 inline-flex items-center justify-center text-[13px] font-medium underline underline-offset-4 decoration-gold/70 transition-colors ${dark ? 'text-ivory/80 hover:text-gold' : 'text-onyx/75 hover:text-gold-deep'}`}
+-          >
+-            {tr('Commander en gros', 'Order wholesale')}
+-          </a>
+-        )}
++        <div className="mt-auto pt-2">
++          {soldOut ? (
++            <p className="min-h-11 flex items-center text-sm text-moss">{tr('Indisponible pour le moment', 'Currently unavailable')}</p>
++          ) : (
++            <>
++              {hasWholesale && (
++                <a
++                  href={wholesaleLink}
++                  onClick={() => track('wholesale', { pid: product.id, cat: product.category })}
++                  target="_blank"
++                  rel="noopener noreferrer"
++                  className="min-h-11 flex items-center justify-between gap-2 text-sm text-moss hover:text-velvet underline underline-offset-4 decoration-velvet/30"
++                  aria-label={`${tr('Commander en gros', 'Order wholesale')} · ${name}`}
++                >
++                  <span>{tr('Prix de gros', 'Wholesale')}</span>
++                  <span className="font-semibold tabular-nums text-velvet">{formatFCFA(product.wholesalePrice!, lang)}</span>
++                </a>
++              )}
++              <a
++                href={link}
++                onClick={() => track('order', { pid: product.id, cat: product.category })}
++                target="_blank"
++                rel="noopener noreferrer"
++                className="mt-1 h-12 rounded-sm bg-velvet hover:bg-velvet-deep text-white font-semibold inline-flex w-full items-center justify-center gap-2"
++              >
++                <MessageCircle className="w-[18px] h-[18px] fill-current shrink-0" aria-hidden="true" />
++                {tr('Commander', 'Order')}
++              </a>
++            </>
++          )}
++        </div>
+       </div>
+     </article>
+   );
+diff --git a/src/components/ProductGrid.tsx b/src/components/ProductGrid.tsx
+index 368fd9f..d1dd68b 100644
+--- a/src/components/ProductGrid.tsx
++++ b/src/components/ProductGrid.tsx
+@@ -13,7 +13,6 @@ interface ProductGridProps {
+ export const ProductGrid: React.FC<ProductGridProps> = ({ selectedCategory, onSelectCategory, onOpen }) => {
+   const { products, lang, tr, ready, offline } = useStore();
+   const [query, setQuery] = useState('');
+-  const dark = selectedCategory === 'montres';
+ 
+   const filtered = useMemo(() => {
+     const needle = query.trim().toLowerCase();
+@@ -28,38 +27,42 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ selectedCategory, onSe
+ 
+   const ids = filtered.map((p) => p.id);
+   const tabs = [{ id: 'all', fr: 'Tout', en: 'All' }, ...CATEGORIES];
++  const searching = query.trim() !== '';
+ 
+   return (
+-    <section id="catalogue" className={`transition-colors duration-500 ${dark ? 'bg-onyx text-ivory' : 'bg-ivory text-onyx'}`}>
++    <section id="catalogue">
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-20 pb-6">
+-        <div className="mb-0 flex items-end justify-between gap-4">
++        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-5">
+           <div>
+-            <h2 className="font-serif text-3xl sm:text-4xl font-medium">{tr('Le catalogue', 'The catalog')}</h2>
+-            <span className="gold-rule mt-3" />
++            <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold">{tr('Le catalogue', 'The catalog')}</h2>
++            <p className="mt-2 text-moss tabular-nums" aria-live="polite">
++              {filtered.length} {tr(filtered.length > 1 ? 'pièces' : 'pièce', filtered.length > 1 ? 'items' : 'item')}
++            </p>
+           </div>
+-          <span className={`text-sm tabular-nums ${dark ? 'text-ivory/60' : 'text-onyx/50'}`}>
+-            {filtered.length} {tr(filtered.length > 1 ? 'pièces' : 'pièce', filtered.length > 1 ? 'items' : 'item')}
+-          </span>
+-        </div>
+-      </div>
+ 
+-      <div className={`sticky top-16 z-30 border-y ${dark ? 'bg-onyx/95 border-ivory/10' : 'bg-ivory/95 border-onyx/10'} backdrop-blur`}>
+-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+-          <div className="mb-3 relative">
+-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-current/70" aria-hidden="true" />
+-            <input
+-              type="search"
+-              value={query}
+-              onChange={(e) => setQuery(e.target.value)}
+-              placeholder={tr('Rechercher un produit…', 'Search a product…')}
+-              aria-label={tr('Rechercher un produit', 'Search a product')}
+-              className={`w-full h-11 rounded-full border pl-11 pr-4 text-sm outline-none transition-colors ${
+-                dark ? 'border-ivory/15 bg-ivory/5 text-ivory placeholder:text-ivory/45' : 'border-onyx/15 bg-white text-onyx placeholder:text-onyx/45'
+-              }`}
+-            />
++          <div className="w-full sm:w-80">
++            <label htmlFor="catalog-search" className="block text-sm text-moss mb-1.5">
++              {tr('Nom ou référence', 'Name or reference')}
++            </label>
++            <div className="relative">
++              <Search className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-moss" aria-hidden="true" />
++              <input
++                id="catalog-search"
++                type="search"
++                value={query}
++                onChange={(e) => setQuery(e.target.value)}
++                placeholder={tr('Ex. M-001, collier…', 'e.g. M-001, necklace…')}
++                className="w-full h-12 rounded-sm border border-velvet/50 bg-paper pl-11 pr-3 text-base text-velvet placeholder:text-moss outline-none focus:border-tag focus:ring-1 focus:ring-tag"
++              />
++            </div>
+           </div>
++        </div>
++      </div>
+ 
+-          <div className="flex gap-2 overflow-x-auto no-scrollbar" role="tablist" aria-label={tr('Catégories', 'Categories')}>
++      {/* Seuls les filtres restent collés en haut de l'écran */}
++      <div className="sticky top-16 z-30 bg-porcelain/92 backdrop-blur-md border-y border-velvet/15">
++        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
++          <div className="flex gap-6 overflow-x-auto no-scrollbar" role="tablist" aria-label={tr('Catégories', 'Categories')}>
+             {tabs.map((t) => {
+               const active = selectedCategory === t.id;
+               return (
+@@ -69,10 +72,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ selectedCategory, onSe
+                   role="tab"
+                   aria-selected={active}
+                   onClick={() => onSelectCategory(t.id)}
+-                  className={`h-10 px-4 rounded-full text-sm whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
+-                    active
+-                      ? dark ? 'bg-gold text-onyx font-semibold' : 'bg-onyx text-ivory font-medium'
+-                      : dark ? 'text-ivory/70 hover:text-ivory border border-ivory/20' : 'text-onyx/70 hover:text-onyx border border-onyx/15'
++                  className={`h-12 border-b-2 whitespace-nowrap shrink-0 cursor-pointer ${
++                    active ? 'border-tag text-velvet font-semibold' : 'border-transparent text-moss hover:text-velvet'
+                   }`}
+                 >
+                   {lang === 'fr' ? t.fr : t.en}
+@@ -85,17 +86,36 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ selectedCategory, onSe
+ 
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 sm:pb-24">
+         {filtered.length === 0 ? (
+-          <p className={`py-16 text-center ${dark ? 'text-ivory/60' : 'text-onyx/50'}`}>
+-            {!ready
+-              ? tr('Chargement du catalogue…', 'Loading the catalog…')
+-              : offline
+-                ? tr('Le catalogue est momentanément indisponible. Réessayez dans un instant ou écrivez-nous sur WhatsApp.', 'The catalog is temporarily unavailable. Please retry shortly or message us on WhatsApp.')
+-                : tr('Aucune pièce dans cette catégorie pour le moment.', 'No items in this category yet.')}
+-          </p>
++          <div className="py-14 max-w-md">
++            {!ready ? (
++              <p className="text-lg">{tr('Chargement du catalogue…', 'Loading the catalog…')}</p>
++            ) : offline ? (
++              <p className="text-lg">
++                {tr(
++                  'Le catalogue est momentanément indisponible. Réessayez dans un instant ou écrivez-nous sur WhatsApp.',
++                  'The catalog is temporarily unavailable. Please retry shortly or message us on WhatsApp.',
++                )}
++              </p>
++            ) : searching ? (
++              <>
++                <p className="text-lg font-heading font-bold">{tr(`Aucune pièce ne correspond à « ${query.trim()} »`, `No piece matches “${query.trim()}”`)}</p>
++                <button type="button" onClick={() => setQuery('')} className="mt-4 h-12 px-6 rounded-sm bg-velvet hover:bg-velvet-deep text-white font-semibold cursor-pointer">
++                  {tr('Effacer la recherche', 'Clear the search')}
++                </button>
++              </>
++            ) : (
++              <>
++                <p className="text-lg font-heading font-bold">{tr('Aucune pièce dans cette catégorie pour le moment', 'No pieces in this category yet')}</p>
++                <button type="button" onClick={() => onSelectCategory('all')} className="mt-4 h-12 px-6 rounded-sm bg-velvet hover:bg-velvet-deep text-white font-semibold cursor-pointer">
++                  {tr('Voir tout le catalogue', 'See the whole catalog')}
++                </button>
++              </>
++            )}
++          </div>
+         ) : (
+-          <div key={selectedCategory} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10">
++          <div key={selectedCategory} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-10 sm:gap-x-6">
+             {filtered.map((p, i) => (
+-              <ProductCard key={p.id} product={p} dark={dark} onOpen={() => onOpen(ids, i)} />
++              <ProductCard key={p.id} product={p} onOpen={() => onOpen(ids, i)} />
+             ))}
+           </div>
+         )}
+diff --git a/src/components/ShopSection.tsx b/src/components/ShopSection.tsx
+index 9d3d910..0694ee1 100644
+--- a/src/components/ShopSection.tsx
++++ b/src/components/ShopSection.tsx
+@@ -1,5 +1,5 @@
+ import React from 'react';
+-import { MapPin, Clock, Phone, MessageCircle, Navigation } from 'lucide-react';
++import { Phone, MessageCircle, Navigation } from 'lucide-react';
+ import { useStore } from '../lib/store';
+ import { track } from '../lib/analytics';
+ import { buildGeneralWhatsAppLink, sanitizePhone } from '../lib/whatsapp';
+@@ -12,44 +12,38 @@ export const ShopSection: React.FC = () => {
+   const hours = (lang === 'en' && settings.openingHoursEn) || settings.openingHoursFr;
+ 
+   const rows = [
+-    { icon: MapPin, label: tr('Adresse', 'Address'), value: address },
+-    { icon: Clock, label: tr('Horaires', 'Opening hours'), value: hours },
+-    { icon: Phone, label: tr('Téléphone & WhatsApp', 'Phone & WhatsApp'), value: settings.displayPhone },
++    { label: tr('Adresse', 'Address'), value: address },
++    { label: tr('Horaires', 'Opening hours'), value: hours },
++    { label: tr('Téléphone et WhatsApp', 'Phone and WhatsApp'), value: settings.displayPhone },
+   ];
+ 
+   return (
+-    <section id="boutique" className="bg-sand border-t border-onyx/10">
+-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+-        <div className="reveal rounded-3xl overflow-hidden aspect-[4/3] bg-ivory">
+-          <img src={settings.shopPhoto || IMG.hero} alt={tr('La boutique', 'The shop')} loading="lazy" className="w-full h-full object-cover" />
++    <section id="boutique">
++      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
++        <div className="aspect-[4/3] bg-mist overflow-hidden">
++          <img src={settings.shopPhoto || IMG.hero} alt={tr('La boutique', 'The shop')} loading="lazy" width={800} height={600} className="w-full h-full object-cover" />
+         </div>
+ 
+-        <div className="reveal">
+-          <h2 className="font-serif text-3xl sm:text-5xl font-medium leading-tight">{tr('Venez nous voir', 'Come and visit')}</h2>
+-          <span className="gold-rule mt-4" />
+-          <ul className="mt-8 space-y-5">
+-            {rows.map(({ icon: Icon, label, value }) => (
+-              <li key={label} className="flex gap-4">
+-                <span className="w-10 h-10 shrink-0 rounded-full bg-ivory flex items-center justify-center text-gold-deep">
+-                  <Icon className="w-[18px] h-[18px]" />
+-                </span>
+-                <span>
+-                  <span className="block text-xs uppercase tracking-widest text-onyx/50">{label}</span>
+-                  <span className="block mt-0.5 text-[17px]">{value}</span>
+-                </span>
+-              </li>
++        <div>
++          <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold">{tr('Venez nous voir', 'Come and visit')}</h2>
++          <dl className="mt-8 border-t border-velvet/25">
++            {rows.map(({ label, value }) => (
++              <div key={label} className="py-4 border-b border-velvet/25">
++                <dt className="text-sm text-moss">{label}</dt>
++                <dd className="mt-0.5 text-lg">{value}</dd>
++              </div>
+             ))}
+-          </ul>
++          </dl>
+ 
+           <div className="mt-8 grid sm:grid-cols-3 gap-3">
+-            <a href={whatsapp} onClick={() => track('contact')} target="_blank" rel="noopener noreferrer" className="h-12 rounded-full bg-wa-deep hover:bg-onyx text-white text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors">
+-              <MessageCircle className="w-4 h-4 fill-current" /> WhatsApp
++            <a href={whatsapp} onClick={() => track('contact')} target="_blank" rel="noopener noreferrer" className="h-12 rounded-sm bg-velvet hover:bg-velvet-deep text-white font-semibold inline-flex items-center justify-center gap-2">
++              <MessageCircle className="w-[18px] h-[18px] fill-current" aria-hidden="true" /> WhatsApp
+             </a>
+-            <a href={`tel:+${sanitizePhone(settings.whatsappNumber)}`} className="h-12 rounded-full bg-onyx hover:bg-onyx/80 text-ivory text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors">
+-              <Phone className="w-4 h-4" /> {tr('Appeler', 'Call')}
++            <a href={`tel:+${sanitizePhone(settings.whatsappNumber)}`} className="h-12 rounded-sm border border-velvet hover:bg-velvet hover:text-white font-semibold inline-flex items-center justify-center gap-2">
++              <Phone className="w-[18px] h-[18px]" aria-hidden="true" /> {tr('Appeler', 'Call')}
+             </a>
+-            <a href={settings.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="h-12 rounded-full border border-onyx/25 hover:bg-ivory text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors">
+-              <Navigation className="w-4 h-4" /> {tr('Itinéraire', 'Directions')}
++            <a href={settings.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="h-12 rounded-sm border border-velvet hover:bg-velvet hover:text-white font-semibold inline-flex items-center justify-center gap-2">
++              <Navigation className="w-[18px] h-[18px]" aria-hidden="true" /> {tr('Itinéraire', 'Directions')}
+             </a>
+           </div>
+         </div>
+diff --git a/src/components/WholesaleSection.tsx b/src/components/WholesaleSection.tsx
+index 22f9fd4..33ce32d 100644
+--- a/src/components/WholesaleSection.tsx
++++ b/src/components/WholesaleSection.tsx
+@@ -1,5 +1,5 @@
+ import React, { useState } from 'react';
+-import { ArrowRight, BadgePercent, Boxes, ImageUp, MessageCircle, Search, Sparkles, Truck } from 'lucide-react';
++import { BadgePercent, Boxes, ImageUp, MessageCircle, Truck } from 'lucide-react';
+ import { useStore } from '../lib/store';
+ import { buildWholesaleWhatsAppLink } from '../lib/whatsapp';
+ import { Product } from '../types';
+@@ -114,110 +114,87 @@ export const WholesaleSection: React.FC = () => {
+   ];
+ 
+   return (
+-    <section id="gros" className="bg-onyx text-ivory mb-3 overflow-hidden">
++    <section id="gros" className="on-dark bg-velvet text-porcelain">
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+-        <div className="max-w-3xl">
+-          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-gold font-medium">
+-            {tr('Vente en gros', 'Wholesale sales')}
+-          </span>
+-          <h2 className="mt-3 font-serif text-3xl sm:text-5xl font-medium leading-tight">
+-            {tr('Des prix adaptés aux boutiques et revendeuses.', 'Prices tailored to shops and resellers.')}
+-          </h2>
+-          <p className="mt-4 text-ivory/75 text-base sm:text-lg">
+-            {tr('Pour les commandes de lot, l’équipe vous aide à choisir rapidement les modèles qui correspondent à votre clientèle.', 'For bulk orders, the team helps you quickly choose the models that match your customers.')}
+-          </p>
+-        </div>
+-
+-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
++        <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold max-w-[18ch]">
++          {tr('Des prix adaptés aux boutiques et revendeuses', 'Prices tailored to shops and resellers')}
++        </h2>
++        <p className="mt-5 text-lg text-porcelain/85 max-w-[52ch]">
++          {tr('Pour les commandes de lot, l’équipe vous aide à choisir rapidement les modèles qui correspondent à votre clientèle.', 'For bulk orders, the team helps you quickly choose the models that match your customers.')}
++        </p>
++
++        <ul className="mt-12 grid gap-x-8 gap-y-8 sm:grid-cols-3">
+           {wholesaleInfo.map(({ icon: Icon, title, text }) => (
+-            <div key={title} className="rounded-2xl border border-ivory/10 bg-ivory/5 p-5">
+-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold/15 text-gold">
+-                <Icon className="h-5 w-5" />
+-              </span>
+-              <h3 className="mt-4 font-serif text-xl leading-snug text-ivory">{title}</h3>
+-              <p className="mt-2 text-sm text-ivory/70 leading-relaxed">{text}</p>
+-            </div>
++            <li key={title} className="border-t border-porcelain/30 pt-5">
++              <Icon className="h-6 w-6 text-brass" aria-hidden="true" />
++              <h3 className="mt-4 font-heading font-bold text-xl leading-snug">{title}</h3>
++              <p className="mt-2 text-porcelain/80">{text}</p>
++            </li>
+           ))}
+-        </div>
+-
+-        <div className="mt-6 flex justify-start">
+-          <a
+-            href={wholesaleLink}
+-            target="_blank"
+-            rel="noopener noreferrer"
+-            className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-onyx transition-colors hover:bg-ivory"
+-          >
+-            <MessageCircle className="h-4 w-4 fill-current" />
+-            {tr('Passer une commande en gros', 'Place a wholesale order')}
+-          </a>
+-        </div>
+-
+-        <div className="mt-12 max-w-3xl">
+-          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-gold font-medium">
+-            {tr('Recherche par image', 'Image search')}
+-          </span>
+-          <h2 className="mt-3 font-serif text-3xl sm:text-5xl font-medium leading-tight">
+-            {tr('Trouvez un produit à partir d’une photo.', 'Find a product from a photo.')}
+-          </h2>
+-          <p className="mt-4 text-ivory/75 text-base sm:text-lg">
+-            {tr('Téléversez une image et le catalogue cherchera le produit le plus proche.', 'Upload an image and the catalog will look for the closest matching product.')}
+-          </p>
+-        </div>
++        </ul>
++
++        <a
++          href={wholesaleLink}
++          target="_blank"
++          rel="noopener noreferrer"
++          className="mt-10 inline-flex h-12 items-center gap-2 rounded-sm bg-brass px-7 font-semibold text-velvet hover:bg-porcelain"
++        >
++          <MessageCircle className="h-[18px] w-[18px] fill-current" aria-hidden="true" />
++          {tr('Passer une commande en gros', 'Place a wholesale order')}
++        </a>
++
++        <div className="mt-20 sm:mt-28 grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16 items-start">
++          <div>
++            <h2 className="text-[2rem] sm:text-5xl lg:text-6xl font-bold max-w-[16ch]">
++              {tr('Retrouvez une pièce à partir d’une photo', 'Find a piece from a photo')}
++            </h2>
++            <p className="mt-5 text-lg text-porcelain/85 max-w-[44ch]">
++              {tr('Ajoutez une image : le catalogue cherche la pièce la plus proche.', 'Add an image and the catalog looks for the closest piece.')}
++            </p>
++          </div>
+ 
+-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr] items-start">
+-          <label className="group block cursor-pointer rounded-3xl border border-dashed border-ivory/20 bg-ivory/5 p-5 sm:p-7 transition-colors hover:border-gold/60 hover:bg-ivory/8">
+-            <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
+-            <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-ivory/10 bg-onyx/40 px-6 text-center">
+-              {preview ? (
+-                <img src={preview} alt="Aperçu de la recherche" className="h-52 w-full rounded-xl object-cover" />
++          <div className="grid gap-4">
++            <label className="block cursor-pointer border-2 border-dashed border-porcelain/35 hover:border-brass focus-within:border-brass p-3 sm:p-4">
++              <input type="file" accept="image/*" onChange={onUpload} className="sr-only" />
++              <span className="flex min-h-[200px] flex-col items-center justify-center bg-velvet-deep px-6 text-center">
++                {preview ? (
++                  <img src={preview} alt="Aperçu de la recherche" className="h-52 w-full object-cover" />
++                ) : (
++                  <>
++                    <ImageUp className="h-8 w-8 text-brass" aria-hidden="true" />
++                    <span className="mt-4 block text-lg font-semibold">{tr('Choisir une image', 'Choose an image')}</span>
++                    <span className="mt-1 block text-sm text-porcelain/75">{tr('PNG, JPG ou WEBP', 'PNG, JPG or WEBP')}</span>
++                  </>
++                )}
++                {fileName && <span className="mt-3 block text-sm text-porcelain/80">{fileName}</span>}
++              </span>
++            </label>
++
++            <div className="border border-porcelain/25 p-5" aria-live="polite">
++              <p className="font-heading font-bold">{tr('Résultat', 'Result')}</p>
++
++              {loading ? (
++                <p className="mt-3 text-porcelain/85">{tr('Recherche de la pièce…', 'Searching for the piece…')}</p>
++              ) : match ? (
++                <div className="mt-3">
++                  <p className="font-heading text-2xl font-bold leading-tight">{productName}</p>
++                  <p className="mt-1 text-sm text-porcelain/80">Réf. {match.reference}</p>
++                  <button
++                    type="button"
++                    onClick={openCatalog}
++                    className="mt-5 inline-flex h-12 items-center rounded-sm bg-brass px-6 font-semibold text-velvet hover:bg-porcelain cursor-pointer"
++                  >
++                    {tr('Voir dans le catalogue', 'View in catalog')}
++                  </button>
++                </div>
+               ) : (
+-                <>
+-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+-                    <ImageUp className="h-6 w-6" />
+-                  </span>
+-                  <p className="mt-5 text-lg font-medium text-ivory">{tr('Choisir une image', 'Choose an image')}</p>
+-                  <p className="mt-2 text-sm text-ivory/65">{tr('PNG, JPG ou WEBP', 'PNG, JPG or WEBP')}</p>
+-                </>
++                <p className="mt-3 text-porcelain/85">
++                  {error || tr('Ajoutez une photo pour lancer la recherche.', 'Add a photo to start the search.')}
++                </p>
+               )}
+-              {fileName && <p className="mt-4 text-xs text-ivory/70">{fileName}</p>}
+-            </div>
+-          </label>
+-
+-          <div className="rounded-3xl border border-ivory/10 bg-ivory/5 p-5 sm:p-6">
+-            <div className="flex items-center gap-2 text-gold">
+-              <Sparkles className="h-4 w-4" />
+-              <span className="text-[11px] uppercase tracking-[0.2em]">{tr('Résultat', 'Result')}</span>
+             </div>
+-
+-            {loading ? (
+-              <div className="mt-5 text-sm text-ivory/70">{tr('Recherche du produit…', 'Searching the product…')}</div>
+-            ) : match ? (
+-              <div className="mt-4 space-y-4">
+-                <div className="rounded-2xl bg-onyx/40 p-3">
+-                  <p className="text-xs uppercase tracking-[0.2em] text-ivory/55">{tr('Produit proche', 'Closest product')}</p>
+-                  <h3 className="mt-2 font-serif text-2xl text-ivory">{productName}</h3>
+-                  <p className="mt-1 text-sm text-ivory/70">{match.reference}</p>
+-                </div>
+-                <button
+-                  type="button"
+-                  onClick={openCatalog}
+-                  className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-onyx transition-colors hover:bg-ivory"
+-                >
+-                  {tr('Voir dans le catalogue', 'View in catalog')} <ArrowRight className="h-4 w-4" />
+-                </button>
+-              </div>
+-            ) : (
+-              <div className="mt-5 flex min-h-[140px] items-center text-sm text-ivory/70">
+-                {error || tr('Aucune recherche effectuée pour le moment.', 'No search has been made yet.')}
+-              </div>
+-            )}
+           </div>
+         </div>
+-
+-        <div className="mt-8 flex items-center gap-2 text-sm text-ivory/60">
+-          <Search className="h-4 w-4" />
+-          {tr('Recherche visuelle du catalogue', 'Visual catalog search')}
+-        </div>
+       </div>
+     </section>
+   );
+diff --git a/src/manager/Manager.tsx b/src/manager/Manager.tsx
+index 0320373..b1caa01 100644
+--- a/src/manager/Manager.tsx
++++ b/src/manager/Manager.tsx
+@@ -1,13 +1,12 @@
+ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+-import { Check, Gem, LayoutGrid, Lock, LogOut, Megaphone, Store as StoreIcon } from 'lucide-react';
++import { ArrowLeft, Check, Eye, EyeOff, Gem, LayoutGrid, LogOut, Megaphone, Store as StoreIcon } from 'lucide-react';
+ import { deleteAllEvents, fetchEvents, useStore } from '../lib/store';
+-import { CATEGORIES } from '../lib/initialData';
++import { CATEGORIES, IMG } from '../lib/initialData';
+ import { Action, computeStats } from '../lib/analytics';
+ import { AnalyticsEvent } from '../types';
+ import { Overview } from './Overview';
+ import { Products } from './Products';
+ import { Shop } from './Shop';
+-import { btnPrimary, inputCls } from './ui';
+ 
+ type Tab = 'produits' | 'boutique';
+ const TABS = [
+@@ -36,29 +35,69 @@ function useDisplayFont() {
+ const Login: React.FC = () => {
+   const s = useStore();
+   const [password, setPassword] = useState('');
++  const [show, setShow] = useState(false);
+   const [error, setError] = useState('');
+   const [busy, setBusy] = useState(false);
+   return (
+-    <main className="min-h-full flex items-center justify-center p-6">
+-      <form
+-        className="w-full max-w-sm flex items-center justify-center flex-col gap-3 bg-ivory/5 border border-ivory/10 rounded-2xl p-6 sm:p-8"
+-        onSubmit={async (e) => {
+-          e.preventDefault();
+-          setBusy(true);
+-          const err = await s.loginAdmin(password);
+-          setBusy(false);
+-          if (err) setError(err);
+-        }}
+-      >
+-        <span className="w-12 h-12 rounded-full bg-encre text-feuille flex items-center justify-center"><Lock className="w-5 h-5" /></span>
+-        <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-encre">Espace gérant</h1>
+-        <p className="mt-2 text-encre/75">Suivez les produits que vos clientes demandent, mettez à jour vos prix et préparez vos statuts.</p>
+-        <label htmlFor="g-pass" className="sr-only">Mot de passe</label>
+-        <input id="g-pass" type="password" autoFocus autoComplete="current-password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputCls} mt-6`} />
+-        {error && <p role="alert" className="mt-3 text-sm text-garance">{error}</p>}
+-        <button type="submit" disabled={busy || !password} className={`${btnPrimary} w-full mt-4`}>{busy ? 'Connexion…' : 'Se connecter'}</button>
+-        <a href="#" className="mt-4 inline-flex h-11 items-center text-sm underline underline-offset-4 decoration-or">Retour à la boutique</a>
+-      </form>
++    <main className="shop min-h-full grid lg:grid-cols-2">
++      {/* Photo de la boutique, sur grand écran seulement */}
++      <div className="on-dark relative hidden lg:block bg-velvet-deep">
++        <img src={s.settings.bannerImage || IMG.hero} alt="" className="absolute inset-0 w-full h-full object-cover object-[62%_50%]" />
++        <p className="absolute inset-x-0 bottom-0 bg-velvet text-porcelain px-10 py-6 font-heading text-3xl font-extrabold tracking-tight">{s.settings.shopName}</p>
++      </div>
++
++      <div className="flex items-center px-5 py-10 sm:px-12 lg:px-16">
++        <form
++          className="w-full max-w-md mx-auto flex flex-col"
++          onSubmit={async (e) => {
++            e.preventDefault();
++            setBusy(true);
++            const err = await s.loginAdmin(password);
++            setBusy(false);
++            if (err) setError(err);
++          }}
++        >
++          <p className="lg:hidden mb-10 font-heading text-xl font-extrabold tracking-tight">{s.settings.shopName}</p>
++          <h1 className="text-4xl sm:text-5xl font-extrabold">Espace gérant</h1>
++          <p className="mt-4 text-moss max-w-[40ch]">Suivez les produits que vos clientes demandent, mettez à jour vos prix et préparez vos statuts.</p>
++
++          <label htmlFor="g-pass" className="mt-9 block text-sm font-semibold mb-1.5">Mot de passe</label>
++          <div className="relative">
++            <input
++              id="g-pass"
++              type={show ? 'text' : 'password'}
++              autoFocus
++              autoComplete="current-password"
++              value={password}
++              onChange={(e) => { setPassword(e.target.value); if (error) setError(''); }}
++              aria-invalid={error ? true : undefined}
++              aria-describedby={error ? 'g-pass-err' : undefined}
++              className="w-full h-12 rounded-sm border border-velvet/55 bg-paper pl-4 pr-14 text-base text-velvet outline-none focus:border-tag focus:ring-1 focus:ring-tag aria-[invalid=true]:border-tag aria-[invalid=true]:border-2"
++            />
++            <button
++              type="button"
++              onClick={() => setShow((v) => !v)}
++              aria-pressed={show}
++              aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
++              className="absolute right-0.5 top-1/2 -translate-y-1/2 w-11 h-11 text-moss hover:text-velvet flex items-center justify-center cursor-pointer"
++            >
++              {show ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
++            </button>
++          </div>
++          {error && <p id="g-pass-err" role="alert" className="mt-2 text-sm font-semibold text-tag">{error}</p>}
++
++          <button
++            type="submit"
++            disabled={busy || !password}
++            className="mt-6 h-12 w-full rounded-sm bg-velvet hover:bg-velvet-deep disabled:opacity-50 disabled:hover:bg-velvet text-white font-semibold cursor-pointer disabled:cursor-not-allowed"
++          >
++            {busy ? 'Connexion…' : 'Se connecter'}
++          </button>
++          <a href="#" className="mt-3 self-start inline-flex h-11 items-center gap-1.5 text-sm font-semibold text-moss hover:text-velvet">
++            <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Retour à la boutique
++          </a>
++        </form>
++      </div>
+     </main>
+   );
+ };

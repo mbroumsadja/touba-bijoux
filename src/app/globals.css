@@ -186,3 +186,53 @@
   outline: 3px solid var(--color-encre);
   outline-offset: 2px;
 }
+
+/* Backwards-compatible semantic utility mappings for the redesign
+  Many components use semantic classnames such as bg-onyx, text-ivory,
+  bg-gold, bg-sand, bg-velvet, text-porcelain, etc. Map those to the
+  existing CSS variables so the palette is applied consistently
+  without changing component markup. */
+
+.bg-onyx { background-color: var(--color-onyx) !important; }
+.text-onyx { color: var(--color-onyx) !important; }
+.bg-ivory { background-color: var(--color-ivory) !important; }
+.text-ivory { color: var(--color-ivory) !important; }
+.bg-sand { background-color: var(--color-sand) !important; }
+.text-sand { color: var(--color-sand) !important; }
+.bg-gold { background-color: var(--color-gold) !important; }
+.text-gold { color: var(--color-gold) !important; }
+.text-gold-deep { color: var(--color-gold-deep) !important; }
+.bg-gold-deep { background-color: var(--color-gold-deep) !important; }
+
+/* WhatsApp colours */
+.bg-wa { background-color: var(--color-wa) !important; }
+.bg-wa-deep { background-color: var(--color-wa-deep) !important; }
+.text-wa { color: var(--color-wa) !important; }
+
+/* Designer tokens used in newer components — map to closest variables */
+.bg-velvet { background-color: var(--color-onyx) !important; }
+.bg-velvet-deep { background-color: color-mix(in srgb, var(--color-onyx) 80%, black 20%) !important; }
+.text-porcelain { color: var(--color-papier) !important; }
+.text-moss { color: var(--color-malachite) !important; }
+.text-tag { color: var(--color-gold-deep) !important; }
+.bg-mist { background-color: rgba(255,255,255,0.06) !important; }
+.bg-brass { background-color: var(--color-gold) !important; }
+.text-porcelain\/85 { color: rgba(250,247,242,0.85) !important; }
+
+/* Helper for small translucent backgrounds used across components */
+.bg-ivory\/5 { background-color: rgba(250,247,242,0.05) !important; }
+.bg-ivory\/10 { background-color: rgba(250,247,242,0.10) !important; }
+.bg-onyx\/40 { background-color: rgba(20,18,16,0.40) !important; }
+.text-ivory\/70 { color: rgba(250,247,242,0.7) !important; }
+.text-ivory\/60 { color: rgba(250,247,242,0.6) !important; }
+.text-ivory\/75 { color: rgba(250,247,242,0.75) !important; }
+
+/* Small utilities used in product cards and CTAs */
+.border-ivory\/10 { border-color: rgba(250,247,242,0.10) !important; }
+.border-onyx\/10 { border-color: rgba(20,18,16,0.10) !important; }
+
+/* Ensure important interactive elements maintain contrast */
+.btn-gold { background-color: var(--color-gold); color: var(--color-onyx); }
+.wa-float { background-color: var(--color-wa); color: #fff; box-shadow: 0 6px 18px rgba(14,138,66,0.15); }
+
+/* End of compatibility mappings */
