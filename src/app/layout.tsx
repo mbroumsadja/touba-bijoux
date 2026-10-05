@@ -1,53 +1,220 @@
-import type { Metadata, Viewport } from 'next';
-import '@fontsource-variable/instrument-sans';
-import '@fontsource-variable/syne';
-import './globals.css';
+@import "tailwindcss";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+@theme {
+  --color-ivory: #FAF7F2;
+  --color-sand: #F1EBDF;
+  --color-onyx: #141210;
+  --color-gold: #C9A24B;
+  --color-gold-deep: #86651C;
+  --color-wa: #25D366;
+  --color-wa-deep: #0E8A42;
+  --color-papier: #FAF7F2;
+  --color-feuille: #FFFFFF;
+  --color-encre: #141210;
+  --color-or: #C9A24B;
+  --color-or-deep: #86651C;
+  --color-garance: #A9402E;
+  --color-malachite: #1E6B47;
+  --font-display: 'Bricolage Grotesque', 'Jost', system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: 'TOUBA BIJOUX · Montres & bijoux pour femmes · Détail & gros',
-  description:
-    'TOUBA BIJOUX : montres et bijoux pour femmes, vendus au détail et en gros (prix de gros sur chaque produit). Livraison dans tout le Cameroun. Commandez en un clic sur WhatsApp.',
-  manifest: '/manifest.webmanifest',
-  icons: { icon: '/icons/icon-192.png', apple: '/icons/icon-192.png' },
-  openGraph: {
-    title: 'TOUBA BIJOUX · Montres & bijoux',
-    description: 'Détail et gros, livraison dans tout le Cameroun. Photo, prix, commande sur WhatsApp.',
-    type: 'website',
-    images: ['/images/og.jpg'],
-  },
-  twitter: { card: 'summary_large_image' },
-};
+  --color-porcelain: #F2F4F0;
+  --color-paper: #FBFAF6;
+  --color-mist: #DDE4DE;
+  --color-velvet: #0B3B2E;
+  --color-velvet-deep: #072B21;
+  --color-brass: #D9A93C;
+  --color-tag: #C8341E;
+  --color-moss: #4A6258;
+  --font-heading: 'Syne Variable', system-ui, sans-serif;
+  --font-body: 'Instrument Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  themeColor: '#FAF7F2',
-};
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'JewelryStore',
-  name: 'TOUBA BIJOUX',
-  description:
-    'Montres et bijoux pour femmes, vente au détail et en gros, livraison dans tout le Cameroun, commande directe sur WhatsApp.',
-  areaServed: { '@type': 'Country', name: 'Cameroun' },
-  address: { '@type': 'PostalAddress', addressLocality: 'Garoua', addressCountry: 'CM' },
-  currenciesAccepted: 'XAF',
-  paymentAccepted: 'Orange Money, MTN Mobile Money, Paiement à la livraison',
-};
+  body {
+    @apply bg-ivory text-onyx font-sans antialiased;
+  }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="fr" suppressHydrationWarning>
-      <head>
-        <link rel="preload" as="image" href="/images/hero.webp" fetchPriority="high" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      </head>
-      <body>{children}</body>
-    </html>
-  );
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+.shop {
+  background: var(--color-porcelain);
+  color: var(--color-velvet);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.shop h1,
+.shop h2,
+.shop h3 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.shop :focus-visible {
+  outline: 3px solid var(--color-tag);
+  outline-offset: 2px;
+}
+
+.shop a,
+.shop button {
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease, opacity .15s ease;
+}
+
+.gold-rule {
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  background: var(--color-gold);
+}
+
+.tag {
+  --notch: 13px;
+  display: inline-flex;
+  align-items: center;
+  padding: .3rem .7rem .3rem calc(var(--notch) + 1rem);
+  background: var(--color-tag);
+  color: #fff;
+  line-height: 1.2;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% 100%, var(--notch) 100%, 0 50%);
+  -webkit-mask: radial-gradient(circle 3px at calc(var(--notch) + .35rem) 50%, #0000 98%, #000);
+  mask: radial-gradient(circle 3px at calc(var(--notch) + .35rem) 50%, #0000 98%, #000);
+}
+
+.tag-off {
+  background: var(--color-velvet);
+}
+
+.hang {
+  background: var(--color-paper);
+  clip-path: polygon(0 22px, 22px 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+  -webkit-mask: radial-gradient(circle 6px at 50% 19px, #0000 98%, #000);
+  mask: radial-gradient(circle 6px at 50% 19px, #0000 98%, #000);
+}
+
+.sway {
+  transform-origin: 50% 0;
+  animation: sway 2.6s cubic-bezier(.3, .1, .3, 1) .5s both;
+}
+
+@keyframes sway {
+  0% { transform: rotate(8deg); }
+  22% { transform: rotate(-5.5deg); }
+  44% { transform: rotate(3.2deg); }
+  64% { transform: rotate(-1.6deg); }
+  82% { transform: rotate(.6deg); }
+  100% { transform: rotate(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.btn-gold {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .4) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shine 5s infinite;
+}
+
+@keyframes shine {
+  0%, 70% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.wa-float {
+  animation: wa-pulse 2.8s infinite;
+}
+
+@keyframes wa-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, .5); }
+  70% { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+.fade-in {
+  animation: fade-in .2s ease-out;
+}
+
+.sheet-in {
+  animation: sheet-in .28s cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.gerant :focus-visible {
+  outline: 3px solid var(--color-encre);
+  outline-offset: 2px;
 }
