@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/syne';
 import '@fontsource-variable/instrument-sans';
 import './globals.css';
+import { Analytics } from "@vercel/analytics/next"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" as="image" href="/images/hero.webp" fetchPriority="high" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
+      <Analytics/>
       <body>{children}</body>
     </html>
   );
